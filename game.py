@@ -52,24 +52,33 @@ def dibujar_texto(texto, fuente, color, superficie, x, y):
 def pantalla_intro():
     """
     Muestra la pantalla de Intro con el logo.
-    Dura 3 segundos y luego pasa al menú.
+
+    Ahora la intro dura 3 segundos *o* se puede saltar con clic izquierdo del ratón
+    o pulsando cualquier tecla. También dibuja un texto "Haz clic para continuar".
     """
     tiempo_inicio = time.time()
-    while time.time() - tiempo_inicio < 3.0: # Duración de 3 segundos
+    duracion = 3.0
+    while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            # Permitir saltar la intro con clic izquierdo o cualquier tecla
+            if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                return  # vuelve al menú
+            if evento.type == pygame.KEYDOWN:
+                return
+
+        # Si han pasado más de 'duracion' segundos, salir automáticamente
+        if time.time() - tiempo_inicio >= duracion:
+            return
 
         # Ambientación: "scroll lento de estrellas", "nebulosa púrpura"
         # (Por ahora, solo un fondo estático)
-        PANTALLA.fill(COLOR_FONDO_OSCURO) 
+        PANTALLA.fill(COLOR_FONDO_OSCURO)
         
         # "Presenta el logotipo de Astro-Lost"
-        dibujar_texto("Astro lost", fuente_titulo, COLOR_BLANCO, PANTALLA, ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2)
-        # GDD menciona "sonido de una señal espacial distante"
-        # (Aquí podrías iniciar pygame.mixer.music.load() con ese sonido)
-
+        dibujar_texto("Astro lost", fuente_titulo, COLOR_BLANCO, PANTALLA, ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 - 30)
         pygame.display.update()
         reloj.tick(60)
 
