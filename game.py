@@ -50,38 +50,72 @@ except FileNotFoundError:
 # --- (NUEVA) Pantalla de Intro (Slideshow) ---
 def pantalla_intro():
     """
-    Muestra la pantalla de Intro con el logo.
-
-    Ahora la intro dura 3 segundos *o* se puede saltar con clic izquierdo del ratón
-    o pulsando cualquier tecla. También dibuja un texto "Haz clic para continuar".
+    Muestra una secuencia de imágenes (slideshow) para contar la historia.
+    Se puede saltar con Enter o Escape.
     """
-    tiempo_inicio = time.time()
-    duracion = 3.0
-    while True:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            # Permitir saltar la intro con clic izquierdo o cualquier tecla
-            if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-                return  # vuelve al menú
-            if evento.type == pygame.KEYDOWN:
-                return
+    
+    # 1. Lista de las imágenes de la historia
+    # Asegúrate de que los nombres coincidan con tus archivos
+    lista_imagenes_historia = [
+        "historia_1.png",
+        "historia_2.png",
+        "historia_3.png",
+        "historia_4.png",
+        # Puedes añadir todas las que quieras
+    ]
+    
+    # Duración de cada imagen en pantalla (en milisegundos)
+    duracion_por_imagen = 3000 # 3 segundos
 
-        # Si han pasado más de 'duracion' segundos, salir automáticamente
-        if time.time() - tiempo_inicio >= duracion:
-            return
+    for imagen_nombre in lista_imagenes_historia:
+        # --- Cargar y preparar la imagen ---
+        try:
+            imagen = pygame.image.load(imagen_nombre).convert()
+            # La escalamos a 800x600 por si acaso no tiene ese tamaño
+            imagen = pygame.transform.scale(imagen, (ANCHO_PANTALLA, ALTO_PANTALLA))
+        except FileNotFoundError:
+            print(f"Error: No se encontró la imagen '{imagen_nombre}'. Saltando...")
+            # Si no la encuentra, mostramos un fondo negro y seguimos
+            imagen = pygame.Surface((ANCHO_PANTALLA, ALTO_PANTALLA))
+            imagen.fill((0, 0, 0))
 
-        # Ambientación: "scroll lento de estrellas", "nebulosa púrpura"
-        # (Por ahora, solo un fondo estático)
-        PANTALLA.fill(COLOR_FONDO_OSCURO)
-        
-        # "Presenta el logotipo de Astro-Lost"
-        dibujar_texto("Astro lost", fuente_titulo, COLOR_BLANCO, PANTALLA, ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 - 30)
-        pygame.display.update()
-        reloj.tick(60)
+        # --- Bucle por cada imagen (para que el juego no se congele) ---
+        tiempo_inicio_imagen = pygame.time.get_ticks()
+        running = True
+        while running:
+            tiempo_actual = pygame.time.get_ticks()
 
-# --- Menú Principal ---
+            # --- Manejo de Eventos (Permitir Salir o Saltar) ---
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if evento.type == pygame.KEYDOWN:
+                    # Si presiona Enter o Escape, se salta TODA la intro
+                    if evento.key == pygame.K_RETURN or evento.key == pygame.K_ESCAPE:
+                        print("Intro saltada por el usuario.")
+                        return # Termina la función pantalla_intro() inmediatamente
+
+            # --- Lógica de tiempo ---
+            # Si ya pasaron los 3 segundos, salimos del bucle 'while'
+            # y el 'for' cargará la siguiente imagen.
+            if tiempo_actual - tiempo_inicio_imagen > duracion_por_imagen:
+                running = False
+
+            # --- Dibujar ---
+            PANTALLA.blit(imagen, (0, 0)) # Muestra la imagen de la historia
+            
+            # Mensaje para saltar
+            dibujar_texto("Presiona [Enter] para saltar", 
+                          fuente_pequena, COLOR_BLANCO, PANTALLA, ANCHO_PANTALLA // 2, ALTO_PANTALLA - 30)
+            
+            pygame.display.update()
+            reloj.tick(60)
+            
+    # Cuando el bucle 'for' termina, la función acaba y pasa al menú.
+
+
+# --- (MISMA) Función Menú Principal ---
 def menu_principal():
     """
     Bucle principal para el Menú Principal.
