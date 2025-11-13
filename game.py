@@ -1,5 +1,6 @@
 import pygame
 import sys
+import time
 # ¡Ya no importamos 'time'! Usaremos el reloj interno de Pygame.
 
 # --- Inicialización de Pygame ---
