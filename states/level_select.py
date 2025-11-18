@@ -18,14 +18,14 @@ class LevelSelectState(State):
 
         # Posiciones (centros)
         self.positions = {
-            "glacius": (240, 300),
+            "glacius": (200, 300),
             "volcanus": (400, 300),
-            "floria": (560, 300)
+            "floria": (600, 300)
         }
 
         # Escala base
-        self.base_size = 110
-        self.hover_size = 130
+        self.base_size = 130
+        self.hover_size = 150
 
     def handle_events(self):
         for event in pygame.event.get():
