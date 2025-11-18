@@ -11,15 +11,16 @@ class IntroState(State):
         self.duration_per_slide = 4000 
         
         # 1. LISTA DE IMÁGENES
-        image_files = ["historia_1.png", "historia_2.png", "historia_3.png", "historia4.png", "historia_5.png"]
+        image_files = ["intro2.png","historia_1.png", "historia_2.png", "historia_3.png", "historia4.png", "historia_5.png"]
         
         # 2. LISTA DE TEXTOS (Debe haber uno por cada imagen)
         self.story_texts = [
+            "ASTRO-LOST",
             "Viaje espacial Nebulosa del olvido...",
             "...LLUVIA DE ASTEROIDES...",
             "IMPACTOOOOOOOOOO...",
             "Se rompio la fuente de energia principal en fragmentos...",
-            "ASTRO _ BOT eres nuestra esperanza recupera los fragmentos....."
+            "ASTRO-BOT eres nuestra esperanza recupera los fragmentos....."
         ]
         
         # 3. FUENTE PARA EL TEXTO

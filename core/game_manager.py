@@ -16,8 +16,20 @@ class GameManager:
 
     def run(self):
         while True:
+            # Eventos
             self.state.handle_events()
-            self.state.update()
+
+            # Delta time en segundos (útil para actualizaciones basadas en tiempo)
+            dt_ms = self.clock.tick(FPS)
+            dt = dt_ms / 1000.0
+
+            # Llamar a update pasando dt cuando el método lo acepte.
+            try:
+                self.state.update(dt)
+            except TypeError:
+                # Compatibilidad con estados que no esperan dt
+                self.state.update()
+
+            # Dibujado
             self.state.draw()
             pygame.display.flip()
-            self.clock.tick(FPS)
