@@ -99,7 +99,7 @@ class IntroState(State):
             
             # Renderizar el texto (Color Blanco)
             text_surf = self.font.render(text_string, True, (255, 255, 255))
-            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - 80)) # Posición: Abajo centrado
+            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - 45)) # Posición: Abajo centrado
 
             # --- FONDO NEGRO PARA EL TEXTO (Opcional pero recomendado) ---
             # Creamos una caja negra un poco más grande que el texto

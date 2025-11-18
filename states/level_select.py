@@ -8,7 +8,7 @@ class LevelSelectState(State):
         super().__init__(game)
 
         # Fondo espacial
-        self.background = pygame.image.load("assets/images/game_selectBG.png").convert()
+        self.background = pygame.image.load("assets/images/BGgame_select.png").convert()
         self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
 
         # Imágenes de los planetas (con transparencia)
@@ -18,9 +18,9 @@ class LevelSelectState(State):
 
         # Posiciones (centros)
         self.positions = {
-            "glacius": (200, 300),
-            "volcanus": (400, 300),
-            "floria": (600, 300)
+            "glacius": (200, 320),
+            "volcanus": (400, 320),
+            "floria": (600, 320)
         }
 
         # Escala base
@@ -68,6 +68,16 @@ class LevelSelectState(State):
             screen.blit(img_scaled, rect)
 
         # Título
-        font = pygame.font.Font(None, 60)
-        text = font.render("SELECCIÓN DE PLANETA", True, COLOR_BLANCO)
-        screen.blit(text, text.get_rect(center=(WIDTH // 2, 100)))
+        try:
+            font = pygame.font.Font("assets/fonts/VT323-Regular.ttf", 35)
+        except Exception:
+                font = pygame.font.SysFont("verdana", 35)
+
+        text = font.render("glacius", True, COLOR_BLANCO)
+        screen.blit(text, text.get_rect(center=(200, 410)))
+
+        text = font.render("volcanus", True, COLOR_BLANCO)
+        screen.blit(text, text.get_rect(center=(400, 410)))
+
+        text = font.render("floria", True, COLOR_BLANCO)
+        screen.blit(text, text.get_rect(center=(600, 410)))
