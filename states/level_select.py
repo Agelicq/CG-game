@@ -16,6 +16,15 @@ class LevelSelectState(State):
         self.planet_volcanus = pygame.image.load("assets/images/volcanus.png").convert_alpha()
         self.planet_floria = pygame.image.load("assets/images/floria.png").convert_alpha()
 
+        # Sonido al seleccionar planeta
+        self.sound_select = pygame.mixer.Sound("assets/music/rocket.mp3")
+        # Parámetros de audio 
+        self.sound_volume = 0.4       # rango 0.0 - 1.0
+        self.sound_max_ms = 1000      # duración máxima en ms (maxtime)
+        self.sound_fade_ms = 0        # fade-in en ms al reproducir
+        # Aplicar volumen inicial
+        self.sound_select.set_volume(self.sound_volume)
+
         # Posiciones (centros)
         self.positions = {
             "glacius": (200, 320),
@@ -39,7 +48,13 @@ class LevelSelectState(State):
                 for name, (x, y) in self.positions.items():
                     planet_rect = pygame.Rect(x - self.hover_size//2, y - self.hover_size//2, self.hover_size, self.hover_size)
                     if planet_rect.collidepoint((mx, my)):
+                        # Asegurar volumen configurado y reproducir con duración máxima
+                        self.sound_select.set_volume(self.sound_volume)
+                        # maxtime limita la reproducción a self.sound_max_ms milisegundos
+                        self.sound_select.play(maxtime=self.sound_max_ms, fade_ms=self.sound_fade_ms)
                         print(f"Cargando planeta: {name}")
+                        # Aquí después irá el cambio al gameplay
+
                         # Aquí cambiarías al gameplay
                         # from states.gameplay import GameplayState
                         # self.game.change_state(GameplayState(self.game, name))
