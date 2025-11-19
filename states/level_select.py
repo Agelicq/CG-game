@@ -2,6 +2,7 @@ import pygame
 import sys
 from core.state import State
 from settings import *
+from states.gamePlayState import GameplayState
 
 class LevelSelectState(State):
     def __init__(self, game):
@@ -56,8 +57,7 @@ class LevelSelectState(State):
                         # Aquí después irá el cambio al gameplay
 
                         # Aquí cambiarías al gameplay
-                        # from states.gameplay import GameplayState
-                        # self.game.change_state(GameplayState(self.game, name))
+                        self.game.change_state(GameplayState(self.game, name))
 
     def update(self, dt=None):
         # Actualmente no usamos dt aquí, pero lo aceptamos para compatibilidad

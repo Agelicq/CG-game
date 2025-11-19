@@ -63,6 +63,6 @@ class MenuState(State):
             # Efecto hover (cambia de color si el mouse está encima)
             is_hovered = rect.collidepoint(mx, my)
             color = COLOR_NEON_CIAN if is_hovered else COLOR_BLANCO
-            
-            label = FONT_MENU.render(text, True, color)
+            font = pygame.font.Font("assets/fonts/VT323-Regular.ttf", 45)
+            label = font.render(text, True, color)
             self.game.screen.blit(label, label.get_rect(center=(WIDTH//2, y)))

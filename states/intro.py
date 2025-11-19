@@ -14,18 +14,20 @@ class IntroState(State):
         image_files = ["intro2.png","historia_1.png", "historia_2.png", "historia_3.png", "historia4.png", "historia_5.png"]
         
         # 2. LISTA DE TEXTOS (Debe haber uno por cada imagen)
+        # Use None or empty string for slides that should not show text
         self.story_texts = [
-            "ASTRO-LOST",
+            None,
             "Viaje espacial Nebulosa del olvido...",
             "...LLUVIA DE ASTEROIDES...",
             "IMPACTOOOOOOOOOO...",
             "Se rompio la fuente de energia principal en fragmentos...",
-            "ASTRO-BOT eres nuestra esperanza recupera los fragmentos....."
+            "ASTRO-BOT eres nuestra esperanza recupera la FEP..."
         ]
         
         # 3. FUENTE PARA EL TEXTO
         # Usamos una fuente predeterminada, tamaño 30
-        self.font = pygame.font.SysFont("Arial", 30)
+        self.font = pygame.font.Font("assets/fonts/VT323-Regular.ttf", 35)
+        #self.font = pygame.font.SysFont("Arial", 30)
 
         self.images = []
         self.current_index = 0
@@ -92,23 +94,23 @@ class IntroState(State):
             current_image = self.images[self.current_index]
             self.game.screen.blit(current_image, (0, 0))
 
-        # 2. Dibujar el texto de la historia
-        # Verificamos que exista un texto para el índice actual
+        # 2. Dibujar el texto de la historia (si existe y no es vacío)
         if self.current_index < len(self.story_texts):
             text_string = self.story_texts[self.current_index]
-            
-            # Renderizar el texto (Color Blanco)
-            text_surf = self.font.render(text_string, True, (255, 255, 255))
-            text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - 45)) # Posición: Abajo centrado
 
-            # --- FONDO NEGRO PARA EL TEXTO (Opcional pero recomendado) ---
-            # Creamos una caja negra un poco más grande que el texto
-            bg_rect = text_rect.inflate(20, 10) 
-            s = pygame.Surface((bg_rect.width, bg_rect.height))  # la superficie del tamaño de la caja
-            s.set_alpha(150)                # Transparencia (0-255)
-            s.fill((0, 0, 0))               # Color negro
-            self.game.screen.blit(s, bg_rect.topleft)
-            # -------------------------------------------------------------
+            # Sólo renderizar si text_string no es None ni cadena vacía
+            if text_string and str(text_string).strip():
+                # Renderizar el texto (Color Blanco)
+                text_surf = self.font.render(text_string, True, (255, 255, 255))
+                text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - 45)) # Posición: Abajo centrado
 
-            # Dibujar el texto encima de la caja negra
-            self.game.screen.blit(text_surf, text_rect)
+                # --- FONDO NEGRO PARA EL TEXTO (Opcional pero recomendado) ---
+                bg_rect = text_rect.inflate(20, 10)
+                s = pygame.Surface((bg_rect.width, bg_rect.height))
+                s.set_alpha(150)
+                s.fill((0, 0, 0))
+                self.game.screen.blit(s, bg_rect.topleft)
+                # -------------------------------------------------------------
+
+                # Dibujar el texto encima de la caja negra
+                self.game.screen.blit(text_surf, text_rect)

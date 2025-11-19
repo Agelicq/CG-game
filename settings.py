@@ -12,5 +12,4 @@ COLOR_BLANCO = (230, 230, 250)
 COLOR_NEON_CIAN = (0, 255, 255)
 
 pygame.font.init()
-FONT_TITULO = pygame.font.Font(None, 74)
-FONT_MENU = pygame.font.Font(None, 50)
+
