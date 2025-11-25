@@ -8,3 +8,6 @@ class Tile(pygame.sprite.Sprite):
         self.image = image
         self.rect = self.image.get_rect(topleft=pos)
         self.solid = solid  # algunos tiles en el futuro no serán sólidos
+
+
+

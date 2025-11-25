@@ -1,5 +1,8 @@
 import pygame
 import os
+from sprites.projectile import Projectile
+import pygame.mixer
+
 
 GRAVITY = 0.55
 JUMP_SPEED = -12
@@ -12,11 +15,18 @@ class Player(pygame.sprite.Sprite):
 
         self.pos = pygame.Vector2(spawn_pos)
         self.vel = pygame.Vector2(0, 0)
+        self.projectiles = pygame.sprite.Group()
+        self.shoot_cooldown = 0
+        self.shoot_delay = 250  # milisegundos entre disparos
+
+        self.shoot_sound = pygame.mixer.Sound("assets/music/laserpew.wav")
+        self.shoot_sound.set_volume(0.4)
 
         self.animations = {
             "idle": [], 
             "run": [], 
-            "jump": []}
+            "jump": [],
+            "shot": []}
         
         self.load_animations()
 
@@ -32,7 +42,6 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = False
 
 
-
     def load_animations(self):
         folder = "assets/images/player"
 
@@ -40,6 +49,7 @@ class Player(pygame.sprite.Sprite):
         idle_files  = ["IDLE1.png", "IDLE2.png"]
         run_files   = ["RUN1.png", "RUN2.png"]
         jump_files  = ["JUMP1.png", "JUMP2.png", "JUMP3.png"]
+        shot_files  = ["SHOT1.png"]
         #damage_files = ["DAMAGE1.png", "DAMAGE2.png"]
         #collect_files = ["ITEM.png"]
 
@@ -59,6 +69,11 @@ class Player(pygame.sprite.Sprite):
             img = pygame.transform.scale(img, SPRITE_SIZE)
             self.animations["jump"].append(img)
 
+        for name in shot_files:
+            img = pygame.image.load(f"{folder}/{name}").convert_alpha()
+            img = pygame.transform.scale(img, SPRITE_SIZE)
+            self.animations["shot"].append(img)
+
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -72,6 +87,19 @@ class Player(pygame.sprite.Sprite):
             self.facing_right = True
         if keys[pygame.K_UP] and self.on_ground:
             self.vel.y = JUMP_SPEED
+        if keys[pygame.K_SPACE] and self.shoot_cooldown <= 0:
+            self.shoot()
+            self.shoot_cooldown = self.shoot_delay
+
+    def shoot(self):
+    # posición del proyectil en la mano / frente del astro-bot
+        x = self.rect.centerx + (25 if self.facing_right else -25)
+        y = self.rect.centery - 5
+
+        proj = Projectile(x, y, 1 if self.facing_right else -1)
+        self.projectiles.add(proj)
+        self.shoot_sound.play()
+
 
     def apply_gravity(self):
         self.vel.y += GRAVITY
@@ -89,6 +117,11 @@ class Player(pygame.sprite.Sprite):
                 elif self.vel.x < 0:
                     self.rect.left = tile.rect.right
                 self.pos.x = self.rect.x
+                
+        if self.rect.left < 0:  # Si se sale por la izquierda
+            self.rect.left = 0
+            self.pos.x = self.rect.x
+            self.vel.x = 0  # Detener movimiento horizontal
 
         # Movimiento vertical
         self.pos.y += self.vel.y
@@ -113,6 +146,8 @@ class Player(pygame.sprite.Sprite):
             new_state = "idle"
         elif abs(self.vel.x) > 0.2:
             new_state = "run"
+        elif self.shoot_cooldown > self.shoot_delay - 100:
+            new_state = "shot"
         else:
             new_state = "idle"
 
@@ -128,6 +163,8 @@ class Player(pygame.sprite.Sprite):
             self.frame_speed = 0.15         # rápido para sentirse fluido
         elif self.state == "jump":
             self.frame_speed = 0.10
+        elif self.state == "shot":
+            self.frame_speed = 0.04
 
         # 4) Actualizar frame solo si el estado tiene múltiples imágenes
         frames = self.animations[self.state]
@@ -154,5 +191,9 @@ class Player(pygame.sprite.Sprite):
         self.apply_gravity()
         self.move_and_collide(tiles)
         self.update_animation()
+        self.projectiles.update(tiles)
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1000 * dt
+
 
 
