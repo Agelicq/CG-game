@@ -19,9 +19,9 @@ class IntroState(State):
             None,
             "Viaje espacial Nebulosa del olvido...",
             "...LLUVIA DE ASTEROIDES...",
-            "IMPACTOOOOOOOOOO...",
-            "Se rompio la fuente de energia principal en fragmentos...",
-            "ASTRO-BOT eres nuestra esperanza recupera la FEP..."
+            "¡Impacto inminente!",
+            "la fuente de energia principal se ha fragmentado...",
+            "ASTRO-BOT eres nuestra esperanza, recupera la FEP..."
         ]
         
         # 3. FUENTE PARA EL TEXTO

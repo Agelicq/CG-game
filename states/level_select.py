@@ -21,7 +21,7 @@ class LevelSelectState(State):
         self.sound_select = pygame.mixer.Sound("assets/music/rocket.mp3")
         # Parámetros de audio 
         self.sound_volume = 0.4       # rango 0.0 - 1.0
-        self.sound_max_ms = 1000      # duración máxima en ms (maxtime)
+        self.sound_max_ms = 700      # duración máxima en ms (maxtime)
         self.sound_fade_ms = 0        # fade-in en ms al reproducir
         # Aplicar volumen inicial
         self.sound_select.set_volume(self.sound_volume)

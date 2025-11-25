@@ -1,0 +1,158 @@
+import pygame
+import os
+
+GRAVITY = 0.55
+JUMP_SPEED = -12
+MOVE_SPEED = 4
+SPRITE_SIZE = (60, 60)
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, spawn_pos):
+        super().__init__()
+
+        self.pos = pygame.Vector2(spawn_pos)
+        self.vel = pygame.Vector2(0, 0)
+
+        self.animations = {
+            "idle": [], 
+            "run": [], 
+            "jump": []}
+        
+        self.load_animations()
+
+        self.state = "idle"
+        self._prev_state = None
+        self.frame = 0
+        self.frame_speed = 0.08
+
+        self.image = self.animations["idle"][0]
+        self.rect = self.image.get_rect(topleft=(int(self.pos.x), int(self.pos.y)))
+
+        self.facing_right = True
+        self.on_ground = False
+
+
+
+    def load_animations(self):
+        folder = "assets/images/player"
+
+        # Orden fijo para evitar mezcla visual
+        idle_files  = ["IDLE1.png", "IDLE2.png"]
+        run_files   = ["RUN1.png", "RUN2.png"]
+        jump_files  = ["JUMP1.png", "JUMP2.png", "JUMP3.png"]
+        #damage_files = ["DAMAGE1.png", "DAMAGE2.png"]
+        #collect_files = ["ITEM.png"]
+
+
+        for name in idle_files:
+            img = pygame.image.load(f"{folder}/{name}").convert_alpha()
+            img = pygame.transform.scale(img, SPRITE_SIZE)
+            self.animations["idle"].append(img)
+
+        for name in run_files:
+            img = pygame.image.load(f"{folder}/{name}").convert_alpha()
+            img = pygame.transform.scale(img, SPRITE_SIZE)
+            self.animations["run"].append(img)
+
+        for name in jump_files:
+            img = pygame.image.load(f"{folder}/{name}").convert_alpha()
+            img = pygame.transform.scale(img, SPRITE_SIZE)
+            self.animations["jump"].append(img)
+
+
+    def input(self):
+        keys = pygame.key.get_pressed()
+
+        self.vel.x = 0
+        if keys[pygame.K_LEFT]:
+            self.vel.x = -MOVE_SPEED
+            self.facing_right = False
+        if keys[pygame.K_RIGHT]:
+            self.vel.x = MOVE_SPEED
+            self.facing_right = True
+        if keys[pygame.K_UP] and self.on_ground:
+            self.vel.y = JUMP_SPEED
+
+    def apply_gravity(self):
+        self.vel.y += GRAVITY
+        if self.vel.y > 10:
+            self.vel.y = 10
+
+    def move_and_collide(self, tiles):
+        # Movimiento horizontal
+        self.pos.x += self.vel.x
+        self.rect.x = int(self.pos.x)
+        for tile in tiles:
+            if self.rect.colliderect(tile.rect):
+                if self.vel.x > 0:
+                    self.rect.right = tile.rect.left
+                elif self.vel.x < 0:
+                    self.rect.left = tile.rect.right
+                self.pos.x = self.rect.x
+
+        # Movimiento vertical
+        self.pos.y += self.vel.y
+        self.rect.y = int(self.pos.y)
+        self.on_ground = False
+        for tile in tiles:
+            if self.rect.colliderect(tile.rect):
+                if self.vel.y > 0:
+                    self.rect.bottom = tile.rect.top
+                    self.vel.y = 0
+                    self.on_ground = True
+                elif self.vel.y < 0:
+                    self.rect.top = tile.rect.bottom
+                    self.vel.y = 0
+                self.pos.y = self.rect.y
+
+    def update_animation(self):
+        # 1) Determinar estado ---- (una sola vez)
+        if not self.on_ground and self.vel.y < 0:
+            new_state = "jump"
+        elif not self.on_ground and self.vel.y > 0:
+            new_state = "idle"
+        elif abs(self.vel.x) > 0.2:
+            new_state = "run"
+        else:
+            new_state = "idle"
+
+        # 2) Si el estado cambió, reiniciar frame
+        if new_state != self.state:
+            self.state = new_state
+            self.frame = 0
+
+        # 3) Elegir velocidad de animación por estado
+        if self.state == "idle":
+            self.frame_speed = 0.04         # lento porque son 2 frames
+        elif self.state == "run":
+            self.frame_speed = 0.15         # rápido para sentirse fluido
+        elif self.state == "jump":
+            self.frame_speed = 0.10
+
+        # 4) Actualizar frame solo si el estado tiene múltiples imágenes
+        frames = self.animations[self.state]
+
+        if self.state == "idle":
+            image = frames[0]   # idle = frame fijo
+        else:
+            self.frame = (self.frame + self.frame_speed) % len(frames)
+            image = frames[int(self.frame)]
+
+        # 5) Flip horizontal
+        if not self.facing_right:
+            image = pygame.transform.flip(image, True, False)
+
+        # 6) Mantener siempre la posición de los pies
+        old_midbottom = self.rect.midbottom
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = old_midbottom
+
+
+    def update(self, dt, tiles):
+        self.input()
+        self.apply_gravity()
+        self.move_and_collide(tiles)
+        self.update_animation()
+
+
