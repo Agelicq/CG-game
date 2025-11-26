@@ -3,24 +3,32 @@ import os
 from sprites.projectile import Projectile
 import pygame.mixer
 
-
 GRAVITY = 0.55
 JUMP_SPEED = -12
 MOVE_SPEED = 4
 SPRITE_SIZE = (60, 60)
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, spawn_pos):
+    def __init__(self, game, spawn_pos):
         super().__init__()
 
+        self.game = game
         self.pos = pygame.Vector2(spawn_pos)
         self.vel = pygame.Vector2(0, 0)
-        self.projectiles = pygame.sprite.Group()
         self.shoot_cooldown = 0
         self.shoot_delay = 250  # milisegundos entre disparos
+        self.can_shoot = True  
+        self.shoot_timer = 0      
+        self.shooting = False
+        self.shoot_anim_timer = 0 
 
         self.shoot_sound = pygame.mixer.Sound("assets/music/laserpew.wav")
         self.shoot_sound.set_volume(0.4)
+
+        self.health = 100
+        self.invincible = False
+        self.invincible_timer = 0
+
 
         self.animations = {
             "idle": [], 
@@ -87,9 +95,16 @@ class Player(pygame.sprite.Sprite):
             self.facing_right = True
         if keys[pygame.K_UP] and self.on_ground:
             self.vel.y = JUMP_SPEED
-        if keys[pygame.K_SPACE] and self.shoot_cooldown <= 0:
-            self.shoot()
-            self.shoot_cooldown = self.shoot_delay
+        if keys[pygame.K_SPACE] and self.can_shoot:
+            direction = 1 if self.facing_right else -1
+            bullet = Projectile(self.rect.centerx, self.rect.centery, direction)
+            self.game.bullets.add(bullet)  
+            self.can_shoot = False
+            self.shoot_timer = 0.25
+            self.shooting = True
+            self.shoot_anim_timer = 0.18 
+            self.shoot_sound.play()
+
 
     def shoot(self):
     # posición del proyectil en la mano / frente del astro-bot
@@ -146,7 +161,7 @@ class Player(pygame.sprite.Sprite):
             new_state = "idle"
         elif abs(self.vel.x) > 0.2:
             new_state = "run"
-        elif self.shoot_cooldown > self.shoot_delay - 100:
+        elif self.shooting:
             new_state = "shot"
         else:
             new_state = "idle"
@@ -185,15 +200,40 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midbottom = old_midbottom
 
+    def take_damage(self, amount):
+        if not self.invincible:
+            self.health -= amount
+            self.invincible = True
+            self.invincible_timer = 1.0  # 1 segundo de invulnerabilidad temporal
+            print(f"Player damage! Health = {self.health}")
+
 
     def update(self, dt, tiles):
         self.input()
         self.apply_gravity()
         self.move_and_collide(tiles)
         self.update_animation()
-        self.projectiles.update(tiles)
+        self.game.bullets.update(tiles)
+
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1000 * dt
+
+        if not self.can_shoot:
+            self.shoot_timer -= dt
+            if self.shoot_timer <= 0:
+                self.can_shoot = True
+
+        if self.shooting:
+            self.shoot_anim_timer -= dt
+            if self.shoot_anim_timer <= 0:
+                self.shooting = False
+
+
+        if self.invincible:
+            self.invincible_timer -= dt
+            if self.invincible_timer <= 0:
+                self.invincible = False
+
 
 
 

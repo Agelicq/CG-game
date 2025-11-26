@@ -9,9 +9,11 @@ class GameplayState(State):
     def __init__(self, game, planet_name):
         super().__init__(game)
         self.level = Level(planet_name)
-        self.player = Player(self.level.player_spawn)
+        self.player = Player(self, self.level.player_spawn)
         self.enemies = pygame.sprite.Group()
         self.enemies.add(Enemy((550, 180)))
+        self.bullets = pygame.sprite.Group()
+
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -24,10 +26,25 @@ class GameplayState(State):
     def update(self, dt):
         self.player.update(dt, self.level.tiles)
         self.enemies.update(dt)
+        self.bullets.update(self.level.tiles)
+
+        # Enemigo colisiona con Player -> daño
+        for enemy in self.enemies:
+            if enemy.rect.colliderect(self.player.rect):
+                self.player.take_damage(10)
+
+        for bullet in self.bullets:
+            for enemy in self.enemies:
+                if bullet.rect.colliderect(enemy.rect):
+                    enemy.take_damage()
+                    bullet.kill()
+
+
 
     def draw(self):
         self.game.screen.fill((10, 10, 15))
         self.level.draw(self.game.screen)
         self.game.screen.blit(self.player.image, self.player.rect)
-        self.player.projectiles.draw(self.game.screen)
+
+        self.bullets.draw(self.game.screen)
         self.enemies.draw(self.game.screen)

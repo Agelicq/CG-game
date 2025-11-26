@@ -2,7 +2,7 @@ import pygame
 import os
 
 ENEMY_SPEED = 2
-SPRITE_SIZE = (60, 60)
+SPRITE_SIZE = (65, 65)
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos, patrol_dist=120):
@@ -10,6 +10,8 @@ class Enemy(pygame.sprite.Sprite):
 
         self.pos = pygame.Vector2(pos)
         self.vel = pygame.Vector2(ENEMY_SPEED, 0)
+        self.health = 5  # o más si quieres
+
 
         # Cargar animación WALK
         self.anim_walk = []
@@ -52,6 +54,21 @@ class Enemy(pygame.sprite.Sprite):
 
         self.image = img
         self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
+
+    def take_damage(self, amount=1):
+        self.health -= amount
+        if self.health <= 0:
+            self.die()
+
+    def die(self):
+        self.alive = False
+        self.kill()
+        self.death_sound = pygame.mixer.Sound("assets/music/enemydie.wav")
+        self.death_sound.set_volume(0.4)
+        self.death_sound.play()
+        print("Enemy destroyed!")
+
+
 
     def update(self, dt):
         if not self.alive:
