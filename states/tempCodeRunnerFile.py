@@ -10,16 +10,6 @@ class GameplayState(State):
         super().__init__(game)
         self.level = Level(planet_name)
         self.player = Player(self, self.level.player_spawn)
-        
-        # 1. Cargamos la imagen desde el archivo
-        # Usa .convert() para que el juego vaya más rápido
-        bg_image = pygame.image.load("assets/images/Primermundo.png").convert() 
-        
-        # 2. (Opcional) Escalamos la imagen para que llene toda la pantalla
-        # self.game.screen.get_size() obtiene el ancho y alto de tu ventana
-        self.background = pygame.transform.scale(bg_image, self.game.screen.get_size())
-        # ------------------------------
-        
         self.enemies = pygame.sprite.Group()
         self.enemies.add(Enemy((550, 180)))
         self.bullets = pygame.sprite.Group()
@@ -52,7 +42,7 @@ class GameplayState(State):
 
 
     def draw(self):
-        self.game.screen.blit(self.background, (0, 0))
+        self.game.screen.fill((10, 10, 15))
         self.level.draw(self.game.screen)
         self.game.screen.blit(self.player.image, self.player.rect)
 
