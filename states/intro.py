@@ -11,7 +11,7 @@ class IntroState(State):
         self.duration_per_slide = 4000 
         
         # 1. LISTA DE IMÁGENES
-        image_files = ["intro2.png","historia_1.png", "historia_2.png", "historia_3.png", "historia4.png", "historia_5.png"]
+        image_files = ["intro2.png","historia_1.png", "historia_2.png", "historia_3.png", "historia_4.png", "historia_5.png"]
         
         # 2. LISTA DE TEXTOS (Debe haber uno por cada imagen)
         # Use None or empty string for slides that should not show text

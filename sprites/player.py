@@ -25,16 +25,22 @@ class Player(pygame.sprite.Sprite):
         self.shoot_sound = pygame.mixer.Sound("assets/music/laserpew.wav")
         self.shoot_sound.set_volume(0.4)
 
+        #vida maxima del player
         self.health = 50
         self.invincible = False
         self.invincible_timer = 0
 
+        self.collected_fragment = False
+        self.damage_timer = 0
+        self.pain = False
 
         self.animations = {
             "idle": [], 
             "run": [], 
             "jump": [],
-            "shot": []}
+            "shot": [],
+            "damage": [],
+            "collect": []}
         
         self.load_animations()
 
@@ -58,9 +64,7 @@ class Player(pygame.sprite.Sprite):
         run_files   = ["RUN1.png", "RUN2.png"]
         jump_files  = ["JUMP1.png", "JUMP2.png", "JUMP3.png"]
         shot_files  = ["SHOT1.png"]
-        #damage_files = ["DAMAGE1.png", "DAMAGE2.png"]
-        #collect_files = ["ITEM.png"]
-
+        damage_files = ["DAMAGE1.png"]
 
         for name in idle_files:
             img = pygame.image.load(f"{folder}/{name}").convert_alpha()
@@ -81,6 +85,11 @@ class Player(pygame.sprite.Sprite):
             img = pygame.image.load(f"{folder}/{name}").convert_alpha()
             img = pygame.transform.scale(img, SPRITE_SIZE)
             self.animations["shot"].append(img)
+
+        for name in damage_files:
+            img = pygame.image.load(f"{folder}/{name}").convert_alpha()
+            img = pygame.transform.scale(img, SPRITE_SIZE)
+            self.animations["damage"].append(img)
 
 
     def input(self):
@@ -163,6 +172,8 @@ class Player(pygame.sprite.Sprite):
             new_state = "run"
         elif self.shooting:
             new_state = "shot"
+        elif self.pain:
+            new_state = "damage"
         else:
             new_state = "idle"
 
@@ -180,6 +191,9 @@ class Player(pygame.sprite.Sprite):
             self.frame_speed = 0.10
         elif self.state == "shot":
             self.frame_speed = 0.04
+        elif self.state == "damage":
+            self.frame_speed = 0.01
+
 
         # 4) Actualizar frame solo si el estado tiene múltiples imágenes
         frames = self.animations[self.state]
@@ -204,7 +218,11 @@ class Player(pygame.sprite.Sprite):
         if not self.invincible:
             self.health -= amount
             self.invincible = True
-            self.invincible_timer = 1.0  # 1 segundo de invulnerabilidad temporal
+            self.invincible_timer = 0.5
+            self.state = "damage"
+            self.frame = 0
+            self.pain = True
+            self.damage_timer = 0.1   # duración de la animación
             print(f"Player damage! Health = {self.health}")
 
     def die(self):
@@ -213,12 +231,18 @@ class Player(pygame.sprite.Sprite):
         self.health = 0
 
 
+
     def update(self, dt, tiles):
         self.input()
         self.apply_gravity()
         self.move_and_collide(tiles)
         self.update_animation()
         self.game.bullets.update(tiles)
+
+        if self.damage_timer > 0:
+            self.damage_timer -= dt
+            if self.damage_timer <= 0:
+                self.state = "idle"
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1000 * dt
@@ -240,9 +264,11 @@ class Player(pygame.sprite.Sprite):
             self.invincible_timer -= dt
             if self.invincible_timer <= 0:
                 self.invincible = False
+                self.pain = False
 
         if self.rect.top > 800:  # valor grande para que realmente haya vacío
             self.die()
+
 
 
 

@@ -15,8 +15,9 @@ class GameplayState(State):
         self.player = Player(self, self.level.player_spawn)
         
         # 1. Cargamos la imagen desde el archivo
-        bg_image = pygame.image.load("assets/images/primerM.png").convert() 
+        bg_image = pygame.image.load("assets/images/bgGlacius.png").convert() 
         self.background = pygame.transform.scale(bg_image, self.game.screen.get_size())
+
 
         x = 500
         y = 150
@@ -28,10 +29,14 @@ class GameplayState(State):
         self.stalactites = pygame.sprite.Group()
         self.stalactites.add(Stalactite(x, y))
         self.collectibles = pygame.sprite.Group()
-        fragment_img = pygame.image.load("assets/images/alfa.png").convert_alpha()
 
-        # Ejemplo: colocar el fragmento sobre una plataforma específica
-        self.collectibles.add(Collectible(80, 170, fragment_img))
+        fragment_img = pygame.image.load("assets/images/alfa.png").convert_alpha()
+        fragment_img = pygame.transform.scale(fragment_img, (60, 55))
+        heal_img = pygame.image.load("assets/images/item.png").convert_alpha()
+        heal_img = pygame.transform.scale(heal_img, (55, 55))
+
+        self.collectibles.add(Collectible(80, 170, fragment_img, type="fragment"))
+        self.collectibles.add(Collectible(100, 300, heal_img, type="heal"))
 
 
 
@@ -68,6 +73,15 @@ class GameplayState(State):
         if not self.player.alive:
             self.game.change_state(GameOverState(self.game))
             return
+        
+        hits = pygame.sprite.spritecollide(self.player, self.collectibles, dokill=True)
+        for item in hits:
+            if item.type == "fragment":
+                self.player.collected_fragment = True
+                print("Fragment collected!")
+            elif item.type == "heal":
+                self.player.health = min(50, self.player.health + 10)
+                print("Health")
 
 
     def draw_health_bar(self):
