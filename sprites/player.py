@@ -162,6 +162,17 @@ class Player(pygame.sprite.Sprite):
                     self.vel.y = 0
                 self.pos.y = self.rect.y
 
+        # aplicar fricción según el tile donde se está parado
+        for tile in tiles:
+            if self.rect.colliderect(tile.rect) and self.on_ground:
+                if tile.type == "ice":
+                    self.vel.x *= 0.97    # frena muy poco = hielo
+                else:
+                    self.vel.x *= 0.75    # frena rápido = suelo normal
+                break
+
+
+
     def update_animation(self):
         # 1) Determinar estado ---- (una sola vez)
         if not self.on_ground and self.vel.y < 0:

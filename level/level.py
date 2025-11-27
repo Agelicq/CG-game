@@ -15,13 +15,20 @@ class Level:
         img_block = pygame.Surface((TILE_SIZE, TILE_SIZE))
         img_block.fill((120, 120, 120))  # bloque provisional
 
+        img_ice = pygame.Surface((TILE_SIZE, TILE_SIZE))
+        img_ice.fill((180, 220, 255))  # bloque de hielo provisional
+
         for row_idx, row in enumerate(layout):
             for col_idx, cell in enumerate(row):
                 x = col_idx * TILE_SIZE
                 y = row_idx * TILE_SIZE
 
                 if cell == "1" or cell == "#":  # plataforma sólida
-                    tile = Tile((x, y), img_block)
+                    tile = Tile(x, y, img_block, "solid")
+                    self.tiles.add(tile)
+
+                elif cell == "I":
+                    tile = Tile(x, y, img_ice, "ice")
                     self.tiles.add(tile)
 
                 elif cell == "P":  # jugador aparece aquí

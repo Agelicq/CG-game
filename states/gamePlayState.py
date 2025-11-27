@@ -26,8 +26,14 @@ class GameplayState(State):
         #posicion de enemigos temporal 
         self.enemies.add(Enemy((550, 180)))
         self.bullets = pygame.sprite.Group()
+        # Cargar imagen de stalactita
+        
+        stalactite_img = pygame.image.load("assets/images/stalactite.png").convert_alpha()
+        stalactite_img = pygame.transform.scale(stalactite_img, (16, 32))
+
         self.stalactites = pygame.sprite.Group()
-        self.stalactites.add(Stalactite(x, y))
+        # Crear varias stalactitas en diferentes posiciones
+        self.stalactites.add(Stalactite(x, y, stalactite_img))
         self.collectibles = pygame.sprite.Group()
 
         fragment_img = pygame.image.load("assets/images/alfa.png").convert_alpha()
