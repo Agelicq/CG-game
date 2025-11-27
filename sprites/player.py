@@ -25,7 +25,7 @@ class Player(pygame.sprite.Sprite):
         self.shoot_sound = pygame.mixer.Sound("assets/music/laserpew.wav")
         self.shoot_sound.set_volume(0.4)
 
-        self.health = 100
+        self.health = 50
         self.invincible = False
         self.invincible_timer = 0
 
@@ -207,6 +207,11 @@ class Player(pygame.sprite.Sprite):
             self.invincible_timer = 1.0  # 1 segundo de invulnerabilidad temporal
             print(f"Player damage! Health = {self.health}")
 
+    def die(self):
+        print("PLAYER DEAD")
+        self.alive = False
+        self.health = 0
+
 
     def update(self, dt, tiles):
         self.input()
@@ -227,12 +232,17 @@ class Player(pygame.sprite.Sprite):
             self.shoot_anim_timer -= dt
             if self.shoot_anim_timer <= 0:
                 self.shooting = False
-
+        
+        if self.health <= 0:
+            self.die()
 
         if self.invincible:
             self.invincible_timer -= dt
             if self.invincible_timer <= 0:
                 self.invincible = False
+
+        if self.rect.top > 800:  # valor grande para que realmente haya vacío
+            self.die()
 
 
 
