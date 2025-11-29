@@ -5,13 +5,12 @@ ENEMY_SPEED = 2
 SPRITE_SIZE = (65, 65)
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos, patrol_dist=120):
+    def __init__(self, x, y, patrol_dist):
         super().__init__()
 
-        self.pos = pygame.Vector2(pos)
+        self.pos = pygame.Vector2(x, y)
         self.vel = pygame.Vector2(ENEMY_SPEED, 0)
-        self.health = 5  # o más si quieres
-
+        self.health = 5  # o más 
 
         # Cargar animación WALK
         self.anim_walk = []
@@ -26,11 +25,11 @@ class Enemy(pygame.sprite.Sprite):
         self.frame_speed = 0.1
 
         self.image = self.anim_walk[0]
-        self.rect = self.image.get_rect(topleft=pos)
+        self.rect = self.image.get_rect(topleft=(x, y))
         self.facing_right = True
 
         # Patrulla
-        self.start_x = pos[0]
+        self.start_x = x
         self.patrol_dist = patrol_dist
 
         # Estado

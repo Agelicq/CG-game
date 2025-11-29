@@ -17,8 +17,6 @@ def load_tileset(path):
             tile = pygame.transform.scale(tile, (TILE_SIZE, TILE_SIZE))  # escalar a tu tamaño real
             tiles.append(tile)
 
-    print(len(tiles), "tiles cargados desde", path)
-
     return tiles
 
 

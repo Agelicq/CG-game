@@ -54,6 +54,7 @@ class Player(pygame.sprite.Sprite):
 
         self.facing_right = True
         self.on_ground = False
+        self.on_ice = False  # Inicializar variable de hielo
 
 
     def load_animations(self):
@@ -64,7 +65,6 @@ class Player(pygame.sprite.Sprite):
         run_files   = ["RUN1.png", "RUN2.png"]
         jump_files  = ["JUMP1.png", "JUMP2.png", "JUMP3.png"]
         shot_files  = ["SHOT1.png"]
-        damage_files = ["DAMAGE1.png"]
 
         for name in idle_files:
             img = pygame.image.load(f"{folder}/{name}").convert_alpha()
@@ -86,21 +86,20 @@ class Player(pygame.sprite.Sprite):
             img = pygame.transform.scale(img, SPRITE_SIZE)
             self.animations["shot"].append(img)
 
-        for name in damage_files:
-            img = pygame.image.load(f"{folder}/{name}").convert_alpha()
-            img = pygame.transform.scale(img, SPRITE_SIZE)
-            self.animations["damage"].append(img)
 
 
     def input(self):
         keys = pygame.key.get_pressed()
 
+        # Velocidad base, aumenta en hielo
+        current_speed = MOVE_SPEED * 2 if hasattr(self, 'on_ice') and self.on_ice else MOVE_SPEED
+        
         self.vel.x = 0
         if keys[pygame.K_LEFT]:
-            self.vel.x = -MOVE_SPEED
+            self.vel.x = -current_speed
             self.facing_right = False
         if keys[pygame.K_RIGHT]:
-            self.vel.x = MOVE_SPEED
+            self.vel.x = current_speed
             self.facing_right = True
         if keys[pygame.K_UP] and self.on_ground:
             self.vel.y = JUMP_SPEED
@@ -166,11 +165,10 @@ class Player(pygame.sprite.Sprite):
         for tile in tiles:
             if self.rect.colliderect(tile.rect) and self.on_ground:
                 if tile.type == "ice":
-                    self.vel.x *= 0.97    # frena muy poco = hielo
+                    self.vel.x *= 0.98    # frena muy poco = hielo más resbaloso
                 else:
                     self.vel.x *= 0.75    # frena rápido = suelo normal
                 break
-
 
 
     def update_animation(self):
@@ -183,8 +181,6 @@ class Player(pygame.sprite.Sprite):
             new_state = "run"
         elif self.shooting:
             new_state = "shot"
-        elif self.pain:
-            new_state = "damage"
         else:
             new_state = "idle"
 
@@ -202,9 +198,6 @@ class Player(pygame.sprite.Sprite):
             self.frame_speed = 0.10
         elif self.state == "shot":
             self.frame_speed = 0.04
-        elif self.state == "damage":
-            self.frame_speed = 0.01
-
 
         # 4) Actualizar frame solo si el estado tiene múltiples imágenes
         frames = self.animations[self.state]
@@ -233,14 +226,13 @@ class Player(pygame.sprite.Sprite):
             self.state = "damage"
             self.frame = 0
             self.pain = True
-            self.damage_timer = 0.1   # duración de la animación
             print(f"Player damage! Health = {self.health}")
+
 
     def die(self):
         print("PLAYER DEAD")
         self.alive = False
         self.health = 0
-
 
 
     def update(self, dt, tiles):
@@ -249,7 +241,7 @@ class Player(pygame.sprite.Sprite):
         self.move_and_collide(tiles)
         self.update_animation()
         self.game.bullets.update(tiles)
-
+        
         if self.damage_timer > 0:
             self.damage_timer -= dt
             if self.damage_timer <= 0:
@@ -280,7 +272,17 @@ class Player(pygame.sprite.Sprite):
         if self.rect.top > 800:  # valor grande para que realmente haya vacío
             self.die()
 
+        # detectar hielo
+        self.on_ice = False
+        if self.on_ground:
+            foot_rect = pygame.Rect(self.rect.x, self.rect.bottom + 1, self.rect.width, 2)
 
+            for tile in tiles:
+                if tile.type == "ice" and foot_rect.colliderect(tile.rect):
+                    self.on_ice = True
+                    break
 
+        if self.on_ice:
+            self.take_damage(1)
 
 

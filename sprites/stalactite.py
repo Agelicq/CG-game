@@ -7,13 +7,12 @@ class Stalactite(pygame.sprite.Sprite):
         super().__init__()
         self.start_x = x
         self.start_y = y
-        self.image = image  # Usar la imagen pasada desde gamePlayState
+        self.image = image  
         self.rect = self.image.get_rect(topleft=(x, y))
         self.falling = False
         self.fall_speed = 3
 
     def update(self, player, tiles):
-        # activar si el jugador está debajo
         self.falling = True
 
         # Si está cayendo

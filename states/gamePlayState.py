@@ -18,33 +18,22 @@ class GameplayState(State):
         bg_image = pygame.image.load("assets/images/bgGlacius.png").convert() 
         self.background = pygame.transform.scale(bg_image, self.game.screen.get_size())
 
-
-        x = 500
-        y = 150
-        #posisicion inicial para stalacdita luego se pondra en el mapa
-        self.enemies = pygame.sprite.Group()
-        #posicion de enemigos temporal 
-        self.enemies.add(Enemy((550, 180)))
-        self.bullets = pygame.sprite.Group()
-        # Cargar imagen de stalactita
         
+        # enemigos
+        self.enemies = pygame.sprite.Group()
+        for x, y in self.level.enemy_spawns:
+            self.enemies.add(Enemy(x, y + 18, 120))
+        self.bullets = pygame.sprite.Group()
+
+
+        # Cargar imagen de stalactita
         stalactite_img = pygame.image.load("assets/images/stalactite.png").convert_alpha()
         stalactite_img = pygame.transform.scale(stalactite_img, (16, 32))
 
+        #stalactitas
         self.stalactites = pygame.sprite.Group()
-        # Crear varias stalactitas en diferentes posiciones
-        self.stalactites.add(Stalactite(x, y, stalactite_img))
-        self.collectibles = pygame.sprite.Group()
-
-        fragment_img = pygame.image.load("assets/images/alfa.png").convert_alpha()
-        fragment_img = pygame.transform.scale(fragment_img, (60, 55))
-        heal_img = pygame.image.load("assets/images/item.png").convert_alpha()
-        heal_img = pygame.transform.scale(heal_img, (55, 55))
-
-        self.collectibles.add(Collectible(80, 170, fragment_img, type="fragment"))
-        self.collectibles.add(Collectible(100, 300, heal_img, type="heal"))
-
-
+        for x, y in self.level.stalactite_spawns:
+            self.stalactites.add(Stalactite(x, y, stalactite_img))
 
 
     def handle_events(self):
@@ -65,7 +54,7 @@ class GameplayState(State):
         self.bullets.update(self.level.tiles)
         self.stalactites.update(self.player, self.level.tiles)
 
-        # Enemigo colisiona con Player -> daño
+        # Enemigo colisiona con Player = daño
         for enemy in self.enemies:
             if enemy.rect.colliderect(self.player.rect):
                 self.player.take_damage(10)
@@ -80,13 +69,16 @@ class GameplayState(State):
             self.game.change_state(GameOverState(self.game))
             return
         
-        hits = pygame.sprite.spritecollide(self.player, self.collectibles, dokill=True)
+        hits = pygame.sprite.spritecollide(self.player, self.level.collectibles, dokill=True)
         for item in hits:
             if item.type == "fragment":
                 self.player.collected_fragment = True
                 print("Fragment collected!")
             elif item.type == "heal":
-                self.player.health = min(50, self.player.health + 10)
+                self.health_sound = pygame.mixer.Sound("assets/music/health.wav")
+                self.health_sound.set_volume(0.4)
+                self.health_sound.play()
+                self.player.health = min(50, self.player.health + 20) #cuanto cura al player
                 print("Health")
 
 
@@ -103,24 +95,23 @@ class GameplayState(State):
 
         # Barra interior
         if health_ratio > 0.6:
-            color = (0, 255, 0)  # verde
+            color = (126, 252, 126)  # verde
         elif health_ratio > 0.3:
-            color = (255, 255, 0)  # amarillo
+            color = (181, 66, 0)  # amarillo
         else:
-            color = (255, 0, 0)  # rojo
+            color = (181, 33, 0)  # rojo
 
         pygame.draw.rect(self.game.screen, color, (x + 2, y + 2, current_width - 4, height - 4))
 
 
     def draw(self):
         self.game.screen.blit(self.background, (0, 0))
-        #self.game.screen.fill((10, 10, 15))
         self.level.draw(self.game.screen)
         self.game.screen.blit(self.player.image, self.player.rect)
         self.bullets.draw(self.game.screen)
         self.enemies.draw(self.game.screen)
         self.draw_health_bar()
         self.stalactites.draw(self.game.screen)
-        self.collectibles.draw(self.game.screen)
+        self.level.collectibles.draw(self.game.screen)
 
 
