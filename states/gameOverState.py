@@ -1,10 +1,11 @@
 import pygame
-
+from settings import *
 class GameOverState:
     def __init__(self, game):
         self.game = game
-        self.font_big = pygame.font.Font(None, 80)
-        self.font_small = pygame.font.Font(None, 40)
+        self.background = pygame.image.load("assets/images/gameOver.png").convert()
+        self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
+
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -21,12 +22,10 @@ class GameOverState:
         pass
 
     def draw(self):
-        self.game.screen.fill((0, 0, 0))
-        text = self.font_big.render("GAME OVER", True, (255, 0, 0))
-        text2 = self.font_small.render("Presiona ENTER para continuar", True, (255, 255, 255))
-
-        rect = text.get_rect(center=(400, 250))
-        rect2 = text2.get_rect(center=(400, 350))
-
-        self.game.screen.blit(text, rect)
-        self.game.screen.blit(text2, rect2)
+        if self.background:
+            self.game.screen.blit(self.background, (0, 0))
+        #oscurece el fondo
+            overlay = pygame.Surface((WIDTH, HEIGHT))
+            overlay.set_alpha(120)
+            overlay.fill((0, 0, 0))
+            self.game.screen.blit(overlay, (0, 0))

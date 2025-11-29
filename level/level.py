@@ -1,5 +1,7 @@
 import pygame
 from level.tile import Tile, TILE_SIZE
+from level.tileset_loader import load_tileset
+
 from level.world_loader import load_map
 
 class Level:
@@ -12,26 +14,46 @@ class Level:
     def load_level(self, planet_name):
         layout = load_map(planet_name)
 
-        img_block = pygame.Surface((TILE_SIZE, TILE_SIZE))
-        img_block.fill((120, 120, 120))  # bloque provisional
+        tiles = load_tileset("assets/images/ice.png")
 
-        img_ice = pygame.Surface((TILE_SIZE, TILE_SIZE))
-        img_ice.fill((180, 220, 255))  # bloque de hielo provisional
+        tile_sheet = {
+            "ice_top": tiles[0],
+            "ice_center": tiles[1],
+            "ice_edge": tiles[2],
+            "rock_top": tiles[3],
+            "rock_center": tiles[4],
+            "rock_edge": tiles[5],
+        }
 
         for row_idx, row in enumerate(layout):
             for col_idx, cell in enumerate(row):
                 x = col_idx * TILE_SIZE
                 y = row_idx * TILE_SIZE
 
-                if cell == "1" or cell == "#":  # plataforma sólida
-                    tile = Tile(x, y, img_block, "solid")
+                if cell == "R" or cell == "1" or cell == "#":      # piso rocoso superior
+                    tile = Tile(x, y, tile_sheet["rock_top"], "solid")
                     self.tiles.add(tile)
 
-                elif cell == "I":
-                    tile = Tile(x, y, img_ice, "ice")
+                elif cell == "r":    # roca interna
+                    tile = Tile(x, y, tile_sheet["rock_center"], "solid")
                     self.tiles.add(tile)
 
-                elif cell == "P":  # jugador aparece aquí
+                elif cell == "I":    # hielo superior
+                    tile = Tile(x, y, tile_sheet["ice_top"], "ice")
+                    self.tiles.add(tile)
+
+                elif cell == "i":    # hielo interior
+                    tile = Tile(x, y, tile_sheet["ice_center"], "ice")
+                    self.tiles.add(tile)
+
+                elif cell == "E":    # borde rocoso
+                    tile = Tile(x, y, tile_sheet["rock_edge"], "solid")
+                    self.tiles.add(tile)
+                elif cell == "e":    # borde hielo
+                    tile = Tile(x, y, tile_sheet["ice_edge"], "ice")
+                    self.tiles.add(tile)
+
+                elif cell == "P":
                     self.player_spawn = (x, y)
 
     def draw(self, surface):
