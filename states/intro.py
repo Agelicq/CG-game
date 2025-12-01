@@ -41,7 +41,7 @@ class IntroState(State):
                 img = pygame.transform.scale(img, (WIDTH, HEIGHT))
                 self.images.append(img)
             except FileNotFoundError:
-                print(f"⚠️ Error: No se encontró {file_name}")
+                print(f" Error: No se encontró {file_name}")
         
         if not self.images:
             surf = pygame.Surface((WIDTH, HEIGHT))

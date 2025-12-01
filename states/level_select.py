@@ -5,9 +5,18 @@ from settings import *
 from states.gamePlayState import GameplayState
 
 class LevelSelectState(State):
-    def __init__(self, game):
+    def __init__(self, game,player_data):
         super().__init__(game)
-
+        self.player_data = player_data # Recibimos la mochila actualizada
+        
+        # --- VERIFICAR SI TERMINÓ EL JUEGO (3 PLANETAS) ---
+        # Supongamos que tus planetas son: "glacius", "volcanus", "floria"
+        total_planetas = 3 
+        
+        if len(self.player_data["levels_done"]) >= total_planetas:
+            self.save_score_and_finish()
+            return # Detenemos la carga del selector
+        
         # Fondo espacial
         self.background = pygame.image.load("assets/images/BGgame_select.png").convert()
         self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
@@ -37,6 +46,31 @@ class LevelSelectState(State):
         self.base_size = 130
         self.hover_size = 150
 
+    def save_score_and_finish(self):
+        """Formatea el tiempo y guarda en el archivo"""
+        
+        # 1. CONVERTIR SEGUNDOS A MINUTOS:SEGUNDOS
+        total_seconds = int(self.player_data["total_time"])
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        
+        # Formato 00:00 (rellena con ceros)
+        time_str = f"{minutes:02}:{seconds:02}"
+        name = self.player_data["name"]
+
+        print(f"¡JUEGO COMPLETADO! {name} Time :{time_str} min")
+
+        # 2. GUARDAR EN TXT
+        try:
+            with open("puntajes_totales.txt", "a") as f:
+                f.write(f"{name} Time :{time_str} min\n")
+        except Exception as e:
+            print("Error guardando:", e)
+        
+        # 3. REGRESAR AL MENÚ PRINCIPAL (O mostrar créditos)
+        from states.menu import MenuState
+        self.game.change_state(MenuState(self.game))
+    
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -49,15 +83,14 @@ class LevelSelectState(State):
                 for name, (x, y) in self.positions.items():
                     planet_rect = pygame.Rect(x - self.hover_size//2, y - self.hover_size//2, self.hover_size, self.hover_size)
                     if planet_rect.collidepoint((mx, my)):
-                        # Asegurar volumen configurado y reproducir con duración máxima
-                        self.sound_select.set_volume(self.sound_volume)
-                        # maxtime limita la reproducción a self.sound_max_ms milisegundos
-                        self.sound_select.play(maxtime=self.sound_max_ms, fade_ms=self.sound_fade_ms)
-                        print(f"Cargando planeta: {name}")
-                        # Aquí después irá el cambio al gameplay
-
-                        # Aquí cambiarías al gameplay
-                        self.game.change_state(GameplayState(self.game, name))
+                        
+                        # VALIDAR QUE NO REPITA PLANETA (OPCIONAL PERO RECOMENDADO)
+                        if name in self.player_data["levels_done"]:
+                            print("¡Ya completaste este planeta!")
+                        else:
+                            # Ir al nivel pasando la mochila
+                            from states.gamePlayState import GameplayState
+                            self.game.change_state(GameplayState(self.game, name, self.player_data))
 
     def update(self, dt=None):
         # Actualmente no usamos dt aquí, pero lo aceptamos para compatibilidad

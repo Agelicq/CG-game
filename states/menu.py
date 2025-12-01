@@ -36,9 +36,13 @@ class MenuState(State):
                     if rect.collidepoint(mx, my):
                         if text == "Salir":
                             pygame.quit(); sys.exit()
+                        
                         elif text == "Jugar":
-                            self.game.change_state(LevelSelectState(self.game))
-
+                            # ANTES: self.game.change_state(LevelSelectState(self.game))
+                            
+                            # AHORA: Vamos a la pantalla de nombre primero
+                            from states.input_name import InputNameState
+                            self.game.change_state(InputNameState(self.game))
                         else:
                             print(f"Abrir {text} (pendiente)")
 
