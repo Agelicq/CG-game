@@ -8,14 +8,22 @@ from sprites.laser import Laser
 from sprites.stalactite import Stalactite
 from states.gameOverState import GameOverState
 from sprites.collectible import Collectible
+from states.timer import GameTimer
+import time
 
 class GameplayState(State):
-    def __init__(self, game, planet_name):
+    def __init__(self, game, planet_name, player_data):
         super().__init__(game)
-
+        self.player_data = player_data  # Guardamos la mochila
+        self.planet_name = planet_name
         self.level = Level(planet_name)
+        self.start_time = time.time() 
+        self.timer = GameTimer()
+        
         self.player = Player(self, self.level.player_spawn)
 
+        
+        
         # Background proveniente del nivel
         self.background = self.level.background
 
@@ -33,7 +41,8 @@ class GameplayState(State):
                 pygame.quit(); sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 from states.level_select import LevelSelectState
-                self.game.change_state(LevelSelectState(self.game))
+                # AGREGA self.player_data AQUÍ TAMBIÉN:
+                self.game.change_state(LevelSelectState(self.game, self.player_data))
 
     def update(self, dt):
         self.player.update(dt, self.level.tiles)
@@ -60,18 +69,25 @@ class GameplayState(State):
             self.game.change_state(GameOverState(self.game))
             return
 
+
         # Recolección
         hits = pygame.sprite.spritecollide(self.player, self.level.collectibles, dokill=True)
         for item in hits:
             if item.type == "fragment":
-                self.player.collected_fragment = True
-                print("Fragment collected!")
-            elif item.type == "heal":
-                self.health_sound = pygame.mixer.Sound("assets/music/health.wav")
-                self.health_sound.set_volume(0.4)
-                self.health_sound.play()
-                self.player.health = min(50, self.player.health + 20) #cuanto cura al player
-                print("Health")
+                # 1. CALCULAR TIEMPO DEL NIVEL
+                end_time = time.time()
+                level_duration = end_time - self.start_time
+                
+                # 2. ACTUALIZAR LA MOCHILA (ACUMULAR)
+                self.player_data["total_time"] += level_duration
+                self.player_data["levels_done"].append(self.planet_name)
+                
+                print(f"Nivel terminado en: {round(level_duration, 2)}s")
+                print(f"Tiempo Total Acumulado: {round(self.player_data['total_time'], 2)}s")
+
+                # 3. VOLVER AL SELECTOR CON LOS DATOS ACTUALIZADOS
+                from states.level_select import LevelSelectState
+                self.game.change_state(LevelSelectState(self.game, self.player_data))
 
         
 
@@ -109,4 +125,5 @@ class GameplayState(State):
 
         self.game.screen.blit(self.player.image, self.player.rect)
         self.draw_health_bar()
+        self.timer.draw(self.game.screen, self.start_time)
 
