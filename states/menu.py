@@ -2,7 +2,6 @@ import pygame, sys
 from settings import *
 from core.state import State
 import math  # Para el movimiento sinusoidal
-from states.level_select import LevelSelectState
 
 class MenuState(State):
     def __init__(self, game):
@@ -38,9 +37,6 @@ class MenuState(State):
                             pygame.quit(); sys.exit()
                         
                         elif text == "Jugar":
-                            # ANTES: self.game.change_state(LevelSelectState(self.game))
-                            
-                            # AHORA: Vamos a la pantalla de nombre primero
                             from states.input_name import InputNameState
                             self.game.change_state(InputNameState(self.game))
                         else:
