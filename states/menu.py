@@ -1,6 +1,7 @@
 import pygame, sys
 from settings import *
 from core.state import State
+from states.ayudaState import HelpState
 import math  # Para el movimiento sinusoidal
 
 class MenuState(State):
@@ -39,8 +40,16 @@ class MenuState(State):
                         elif text == "Jugar":
                             from states.input_name import InputNameState
                             self.game.change_state(InputNameState(self.game))
-                        else:
-                            print(f"Abrir {text} (pendiente)")
+
+                        elif text == "Puntajes":
+                            print("Mostrar puntajes (pendiente)")
+
+                        elif text == "Ayuda":
+                            self.game.change_state(HelpState(self.game))
+
+
+                        elif text == "Créditos":
+                            print("Mostrar créditos (pendiente)")
 
     def draw(self):
         # Fondo estático (blit único en 0,0)
