@@ -280,11 +280,31 @@ class Player(pygame.sprite.Sprite):
             foot_rect = pygame.Rect(self.rect.x, self.rect.bottom + 1, self.rect.width, 2)
 
             for tile in tiles:
-                if (tile.type == "ice" or tile.type == "lava") and foot_rect.colliderect(tile.rect):
+                if (tile.type == "ice" or tile.type == "lava" or tile.type == "poison") and foot_rect.colliderect(tile.rect):
                     self.on_danger = True
                     break
 
         if self.on_danger:
             self.take_damage(1)
+
+        climbing = False
+        for tile in tiles:
+            if tile.rect.colliderect(self.rect) and tile.type == "climb":
+                climbing = True
+                break
+
+        if climbing:
+            self.vel_y = min(self.vel_y, 40)  # frena caída
+            if self.game.is_key_pressed(pygame.K_UP):
+                self.rect.y -= 3               # subir
+            if self.game.is_key_pressed(pygame.K_DOWN):
+                self.rect.y += 3               # bajar
+
+        for tile in tiles:
+            if tile.rect.colliderect(self.rect) and tile.type == "poisonWall":
+                self.take_damage(6 * dt)
+                self.vel_y = min(self.vel_y, 60)  # se resbala rápido
+                break
+
 
 

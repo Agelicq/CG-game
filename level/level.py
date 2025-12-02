@@ -133,19 +133,19 @@ class Level:
                         self.tiles.add(Tile(x, y, tile_sheet["grass_top"], "solid"))
 
                     elif cell == "r":
-                        self.tiles.add(Tile(x, y, tile_sheet["grass_center"], "solid"))
+                        self.tiles.add(Tile(x, y, tile_sheet["grass_center"], "climb"))
 
                     elif cell == "A":
-                        self.tiles.add(Tile(x, y, tile_sheet["dirt_top"], "solid"))
+                        self.tiles.add(Tile(x, y, tile_sheet["dirt_top"], "poisonWall"))
 
                     elif cell == "a":
                         self.tiles.add(Tile(x, y, tile_sheet["dirt_center"], "solid"))
 
-                    elif cell == "P":
+                    elif cell == "k":
                         self.tiles.add(Tile(x, y, tile_sheet["poison_1"], "poison"))
 
-                    elif cell == "p":
-                        self.tiles.add(Tile(x, y, tile_sheet["poison_2"], "poison"))
+                    elif cell == "K":
+                        self.tiles.add(Tile(x, y, tile_sheet["poison_2"], "solid"))
 
                 # Spawns
                 #player
