@@ -4,6 +4,7 @@ from core.state import State
 from level.level import Level
 from sprites.player import Player
 from sprites.enemy import Enemy
+from sprites.laser import Laser
 from sprites.stalactite import Stalactite
 from states.gameOverState import GameOverState
 from sprites.collectible import Collectible
@@ -22,6 +23,8 @@ class GameplayState(State):
         self.enemies = self.level.enemies
         self.stalactites = self.level.stalactites
         self.collectibles = self.level.collectibles
+        self.lasers = self.level.lasers
+
         self.bullets = pygame.sprite.Group()   # solo se usa para balas
 
     def handle_events(self):
@@ -37,6 +40,8 @@ class GameplayState(State):
         self.enemies.update(dt)
         self.bullets.update(self.level.tiles)
         self.stalactites.update(self.player, self.level.tiles)
+        self.lasers.update(dt, self.player)
+
 
         # Enemigo golpea al jugador
         for enemy in self.enemies:
@@ -68,6 +73,8 @@ class GameplayState(State):
                 self.player.health = min(50, self.player.health + 20) #cuanto cura al player
                 print("Health")
 
+        
+
     def draw_health_bar(self):
         max_width = 200
         height = 18
@@ -93,14 +100,13 @@ class GameplayState(State):
         scaled_bg = pygame.transform.scale(self.background, self.game.screen.get_size())
         self.game.screen.blit(scaled_bg, (0, 0))
         self.level.draw(self.game.screen)
-
         self.collectibles.draw(self.game.screen)
         self.enemies.draw(self.game.screen)
         self.stalactites.draw(self.game.screen)
         self.bullets.draw(self.game.screen)
-
+        for laser in self.lasers:      
+            laser.draw(self.game.screen)
 
         self.game.screen.blit(self.player.image, self.player.rect)
-
         self.draw_health_bar()
 

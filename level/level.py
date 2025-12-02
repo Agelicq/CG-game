@@ -2,6 +2,7 @@ import pygame
 from sprites.collectible import Collectible
 from sprites.enemy import Enemy
 from sprites.stalactite import Stalactite
+from sprites.laser import Laser
 from level.tile import Tile, TILE_SIZE
 from level.tileset_loader import load_tileset
 from level.world_loader import load_map
@@ -12,11 +13,13 @@ class Level:
         self.enemies = pygame.sprite.Group()
         self.stalactites = pygame.sprite.Group()
         self.collectibles = pygame.sprite.Group()
+        self.lasers = pygame.sprite.Group()
 
         self.player_spawn = (0, 0)
         self.enemy_spawns = []
         self.stalactite_spawns = []
         self.collectible_spawns = []
+        self.laser_spawns = []
 
         # Carga mapa y tiles según planeta
         self.planet = planet_name
@@ -28,6 +31,8 @@ class Level:
         self.spawn_enemies()
         self.spawn_stalactites()
         self.spawn_collectibles()
+        self.spawn_lasers()
+
 
         if self.planet == "glacius":
             self.ice_sound = pygame.mixer.Sound("assets/music/cold_wind.mp3")
@@ -97,19 +102,13 @@ class Level:
                         self.tiles.add(Tile(x, y, tile_sheet["rock_top"], "solid"))
 
                     elif cell == "r":
-                        self.tiles.add(Tile(x, y, tile_sheet["rock_center"], "solid"))
-
-                    elif cell == "l":
-                        self.tiles.add(Tile(x, y, tile_sheet["rock_edge"], "solid"))
-
-                    elif cell == "e":
-                        self.tiles.add(Tile(x, y, tile_sheet["rock_edge2"], "solid"))
+                        self.tiles.add(Tile(x, y, tile_sheet["rock_center"], "lava"))
 
                     elif cell == "V":
-                        self.tiles.add(Tile(x, y, tile_sheet["lava_1"], "lava"))
+                        self.tiles.add(Tile(x, y, tile_sheet["lava_1"], "solid"))
 
                     elif cell == "v":
-                        self.tiles.add(Tile(x, y, tile_sheet["lava_2"], "lava"))
+                        self.tiles.add(Tile(x, y, tile_sheet["lava_2"], "solid"))
 
 
                 # Spawns
@@ -122,6 +121,9 @@ class Level:
                 #stalactita
                 elif cell == "S":
                     self.stalactite_spawns.append((x, y))
+                #láser
+                elif cell == "L":
+                    self.laser_spawns.append((x, y))
                 # collectibles
                 #fragmento
                 elif cell == "F":
@@ -129,6 +131,8 @@ class Level:
                 #heal
                 elif cell == "H":
                     self.collectible_spawns.append((x, y+ 50, "heal"))
+
+
 
     # ------------------------------
     # Instanciadores
@@ -138,8 +142,12 @@ class Level:
             self.enemies.add(Enemy(x, y, 120))
 
     def spawn_stalactites(self):
-        stal_img = pygame.image.load("assets/images/stalactite.png").convert_alpha()
-        stal_img = pygame.transform.scale(stal_img, (16, 32))
+        if self.planet == "glacius":
+            stal_img = pygame.image.load("assets/images/stalactite.png").convert_alpha()
+            stal_img = pygame.transform.scale(stal_img, (16, 32))
+        elif self.planet == "volcanus":
+            stal_img = pygame.image.load("assets/images/lavaS.png").convert_alpha()
+            stal_img = pygame.transform.scale(stal_img, (16, 32))
         for x, y in self.stalactite_spawns:
             self.stalactites.add(Stalactite(x, y, stal_img))
 
@@ -149,7 +157,7 @@ class Level:
             fragment_img = pygame.transform.scale(fragment_img, (60, 55))
         elif self.planet == "volcanus":
             fragment_img = pygame.image.load("assets/images/beta.png").convert_alpha()
-            fragment_img = pygame.transform.scale(fragment_img, (60, 55))
+            fragment_img = pygame.transform.scale(fragment_img, (55, 55))
         elif self.planet == "floria":
             fragment_img = pygame.image.load("assets/images/gamma.png").convert_alpha()
             fragment_img = pygame.transform.scale(fragment_img, (60, 55))
@@ -162,6 +170,12 @@ class Level:
                 self.collectibles.add(Collectible(x, y, fragment_img, type="fragment"))
             elif type_ == "heal":
                 self.collectibles.add(Collectible(x, y, heal_img, type="heal"))
+            
+
+    def spawn_lasers(self):
+        for x, y in self.laser_spawns:
+            self.lasers.add(Laser(x, y, length=83, interval=0.5))
+
 
     # ------------------------------
     # Dibujo
@@ -171,3 +185,5 @@ class Level:
         self.collectibles.draw(surface)
         self.stalactites.draw(surface)
         self.enemies.draw(surface)
+        for laser in self.lasers:      # <<< láser manual
+            laser.draw(surface)
