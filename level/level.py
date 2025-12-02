@@ -3,6 +3,7 @@ from sprites.collectible import Collectible
 from sprites.enemy import Enemy
 from sprites.stalactite import Stalactite
 from sprites.laser import Laser
+from sprites.toxic import Toxic
 from level.tile import Tile, TILE_SIZE
 from level.tileset_loader import load_tileset
 from level.world_loader import load_map
@@ -14,12 +15,16 @@ class Level:
         self.stalactites = pygame.sprite.Group()
         self.collectibles = pygame.sprite.Group()
         self.lasers = pygame.sprite.Group()
+        self.toxic = pygame.sprite.Group()
+
 
         self.player_spawn = (0, 0)
         self.enemy_spawns = []
         self.stalactite_spawns = []
         self.collectible_spawns = []
         self.laser_spawns = []
+        self.toxic_spawns = []
+
 
         # Carga mapa y tiles según planeta
         self.planet = planet_name
@@ -32,6 +37,7 @@ class Level:
         self.spawn_stalactites()
         self.spawn_collectibles()
         self.spawn_lasers()
+        self.spawn_toxic()
 
 
         if self.planet == "glacius":
@@ -160,6 +166,11 @@ class Level:
                 #láser
                 elif cell == "L":
                     self.laser_spawns.append((x, y))
+                #hongo toxico 
+                elif cell == "T":
+                    self.toxic_spawns.append((x, y))
+
+
                 # collectibles
                 #fragmento
                 elif cell == "F":
@@ -215,6 +226,12 @@ class Level:
         for x, y in self.laser_spawns:
             self.lasers.add(Laser(x, y, length=83, interval=0.5))
 
+    def spawn_toxic(self):
+        fungi_img = pygame.image.load("assets/images/poisonFungi.png").convert_alpha()
+        fungi_img = pygame.transform.scale(fungi_img, (40, 40))
+        for x, y in self.toxic_spawns:
+            self.toxic.add(Toxic(x, y, fungi_img))
+
 
     # ------------------------------
     # Dibujo
@@ -224,5 +241,7 @@ class Level:
         self.collectibles.draw(surface)
         self.stalactites.draw(surface)
         self.enemies.draw(surface)
-        for laser in self.lasers:      # <<< láser manual
+        self.toxic.draw(surface)
+
+        for laser in self.lasers:     
             laser.draw(surface)

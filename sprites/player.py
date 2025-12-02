@@ -21,12 +21,13 @@ class Player(pygame.sprite.Sprite):
         self.shoot_timer = 0      
         self.shooting = False
         self.shoot_anim_timer = 0 
+        self.poison_wall_timer = 0
 
         self.shoot_sound = pygame.mixer.Sound("assets/music/laserpew.wav")
         self.shoot_sound.set_volume(0.4)
 
         #vida maxima del player
-        self.health = 50
+        self.health = 80
         self.invincible = False
         self.invincible_timer = 0
 
@@ -172,6 +173,70 @@ class Player(pygame.sprite.Sprite):
                     self.vel.x *= 0.75    # frena rápido = suelo normal
                 break
 
+    # ---------- DETECCIÓN Y MECÁNICA DE TREPAR (pared vertical) ----------
+        keys = pygame.key.get_pressed()
+
+        # Parámetros
+        climb_speed = 3        # velocidad de subida / bajada en px/frame
+        wall_jump_power = -10  # salto al rebotar de la pared (valor Y)
+        wall_jump_x = 6        # impulso horizontal al hacer wall-jump
+
+        # Detectar si estamos tocando una pared 'climb' por la izquierda o por la derecha
+        touching_left = False
+        touching_right = False
+
+        # definimos pequeñas cajas en los lados del jugador para chequear contacto lateral
+        left_check = pygame.Rect(self.rect.left - 2, self.rect.top + 4, 2, self.rect.height - 8)
+        right_check = pygame.Rect(self.rect.right, self.rect.top + 4, 2, self.rect.height - 8)
+
+        for tile in tiles:
+            if tile.type == "climb":
+                if left_check.colliderect(tile.rect):
+                    touching_left = True
+                if right_check.colliderect(tile.rect):
+                    touching_right = True
+            elif tile.type == "poisonWall":
+                if left_check.colliderect(tile.rect) or right_check.colliderect(tile.rect):
+                    self.poison_wall = True
+                    # daño con cooldown
+                    if self.poison_wall_timer <= 0:
+                        self.take_damage(4)  # daño moderado
+                        self.poison_wall_timer = 0.  # 0.6s antes de volver a hacer daño
+
+
+        # decidir si podemos trepar: pegados a pared y (presionando hacia la pared ó pulsando UP)
+        wants_to_climb = False
+        if touching_left and (keys[pygame.K_LEFT] or keys[pygame.K_UP]):
+            wants_to_climb = True
+            climb_dir = -1   # pared a la izquierda
+        elif touching_right and (keys[pygame.K_RIGHT] or keys[pygame.K_UP]):
+            wants_to_climb = True
+            climb_dir = 1    # pared a la derecha
+        else:
+            climb_dir = 0
+
+        # Ejecutar trepada
+        if wants_to_climb and not self.on_ground:
+            # detener gravedad / caída
+            self.vel.y = 0
+
+            # permitir subir / bajar con flechas
+            if keys[pygame.K_UP]:
+                self.pos.y -= climb_speed
+            elif keys[pygame.K_DOWN]:
+                self.pos.y += climb_speed
+
+            # desactivar movimiento horizontal mientras trepas para evitar clipping
+            self.vel.x = 0
+
+            # actualizar rect/pos coherente
+            self.rect.y = int(self.pos.y)
+            self.rect.x = int(self.pos.x)
+
+        else:
+            pass
+
+
 
     def update_animation(self):
         # 1) Determinar estado ---- (una sola vez)
@@ -280,31 +345,21 @@ class Player(pygame.sprite.Sprite):
             foot_rect = pygame.Rect(self.rect.x, self.rect.bottom + 1, self.rect.width, 2)
 
             for tile in tiles:
-                if (tile.type == "ice" or tile.type == "lava" or tile.type == "poison") and foot_rect.colliderect(tile.rect):
+                if (tile.type == "ice" or tile.type == "lava") and foot_rect.colliderect(tile.rect):
                     self.on_danger = True
+                    break
+                elif tile.type == "poison" and foot_rect.colliderect(tile.rect):
+                    self.take_damage(5)
                     break
 
         if self.on_danger:
             self.take_damage(1)
 
-        climbing = False
-        for tile in tiles:
-            if tile.rect.colliderect(self.rect) and tile.type == "climb":
-                climbing = True
-                break
+        # cooldown del poisonWall
+        if self.poison_wall_timer > 0:
+            self.poison_wall_timer -= dt
 
-        if climbing:
-            self.vel_y = min(self.vel_y, 40)  # frena caída
-            if self.game.is_key_pressed(pygame.K_UP):
-                self.rect.y -= 3               # subir
-            if self.game.is_key_pressed(pygame.K_DOWN):
-                self.rect.y += 3               # bajar
 
-        for tile in tiles:
-            if tile.rect.colliderect(self.rect) and tile.type == "poisonWall":
-                self.take_damage(6 * dt)
-                self.vel_y = min(self.vel_y, 60)  # se resbala rápido
-                break
 
 
 

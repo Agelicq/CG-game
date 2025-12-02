@@ -7,6 +7,7 @@ from sprites.enemy import Enemy
 from sprites.laser import Laser
 from sprites.stalactite import Stalactite
 from states.gameOverState import GameOverState
+from sprites.toxic import Toxic
 from sprites.collectible import Collectible
 from states.timer import GameTimer
 import time
@@ -69,7 +70,6 @@ class GameplayState(State):
             self.game.change_state(GameOverState(self.game))
             return
 
-
         # Recolección
         hits = pygame.sprite.spritecollide(self.player, self.level.collectibles, dokill=True)
         for item in hits:
@@ -89,6 +89,13 @@ class GameplayState(State):
                 from states.level_select import LevelSelectState
                 self.game.change_state(LevelSelectState(self.game, self.player_data))
 
+            elif item.type == "heal":
+                self.health_sound = pygame.mixer.Sound("assets/music/health.wav")
+                self.health_sound.set_volume(0.4)
+                self.health_sound.play()
+                self.player.health = min(80, self.player.health + 20)
+                print("Health")
+
         
 
     def draw_health_bar(self):
@@ -96,7 +103,7 @@ class GameplayState(State):
         height = 18
         x, y = 20, 20
 
-        health_ratio = max(self.player.health, 0) / 50 #vida maxima  
+        health_ratio = max(self.player.health, 0) / 80 #vida maxima  
         current_width = int(max_width * health_ratio)
 
         # Borde
@@ -120,10 +127,13 @@ class GameplayState(State):
         self.enemies.draw(self.game.screen)
         self.stalactites.draw(self.game.screen)
         self.bullets.draw(self.game.screen)
+        self.level.toxic.draw(self.game.screen)
         for laser in self.lasers:      
             laser.draw(self.game.screen)
 
         self.game.screen.blit(self.player.image, self.player.rect)
         self.draw_health_bar()
         self.timer.draw(self.game.screen, self.start_time)
+        
+
 
