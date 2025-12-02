@@ -38,6 +38,14 @@ class Level:
             self.ice_sound = pygame.mixer.Sound("assets/music/cold_wind.mp3")
             self.ice_sound.set_volume(0.4)
             self.ice_sound.play()
+        elif self.planet == "volcanus":
+            self.lava_sound = pygame.mixer.Sound("assets/music/bgs_volcanus.mp3")
+            self.lava_sound.set_volume(0.4)
+            self.lava_sound.play()
+        elif self.planet == "floria":
+            self.floria_sound = pygame.mixer.Sound("assets/music/bgs_floria.mp3")
+            self.floria_sound.set_volume(0.4)
+            self.floria_sound.play()
 
     # ------------------------------
     # Sección de carga de assets
@@ -77,6 +85,16 @@ class Level:
                 "rock_edge": self.tileset[4],
                 "rock_edge2": self.tileset[5],
             }
+        
+        elif self.planet == "floria":
+            tile_sheet = {
+                "grass_top": self.tileset[0],
+                "grass_center": self.tileset[1],
+                "dirt_top": self.tileset[2],
+                "dirt_center": self.tileset[3],
+                "poison_1": self.tileset[4],
+                "poison_2": self.tileset[5],
+            }
 
         for row_idx, row in enumerate(layout):
             for col_idx, cell in enumerate(row):
@@ -110,6 +128,24 @@ class Level:
                     elif cell == "v":
                         self.tiles.add(Tile(x, y, tile_sheet["lava_2"], "solid"))
 
+                elif self.planet == "floria":
+                    if cell == "#":
+                        self.tiles.add(Tile(x, y, tile_sheet["grass_top"], "solid"))
+
+                    elif cell == "r":
+                        self.tiles.add(Tile(x, y, tile_sheet["grass_center"], "solid"))
+
+                    elif cell == "A":
+                        self.tiles.add(Tile(x, y, tile_sheet["dirt_top"], "solid"))
+
+                    elif cell == "a":
+                        self.tiles.add(Tile(x, y, tile_sheet["dirt_center"], "solid"))
+
+                    elif cell == "P":
+                        self.tiles.add(Tile(x, y, tile_sheet["poison_1"], "poison"))
+
+                    elif cell == "p":
+                        self.tiles.add(Tile(x, y, tile_sheet["poison_2"], "poison"))
 
                 # Spawns
                 #player
@@ -147,6 +183,9 @@ class Level:
             stal_img = pygame.transform.scale(stal_img, (16, 32))
         elif self.planet == "volcanus":
             stal_img = pygame.image.load("assets/images/lavaS.png").convert_alpha()
+            stal_img = pygame.transform.scale(stal_img, (16, 32))
+        elif self.planet == "floria":
+            stal_img = pygame.image.load("assets/images/rockS.png").convert_alpha()
             stal_img = pygame.transform.scale(stal_img, (16, 32))
         for x, y in self.stalactite_spawns:
             self.stalactites.add(Stalactite(x, y, stal_img))
