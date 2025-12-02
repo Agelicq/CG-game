@@ -166,6 +166,8 @@ class Player(pygame.sprite.Sprite):
             if self.rect.colliderect(tile.rect) and self.on_ground:
                 if tile.type == "ice":
                     self.vel.x *= 0.98    # frena muy poco = hielo más resbaloso
+                elif tile.type == "lava":
+                    self.vel.x *= 2    # suelo lava
                 else:
                     self.vel.x *= 0.75    # frena rápido = suelo normal
                 break
@@ -273,16 +275,16 @@ class Player(pygame.sprite.Sprite):
             self.die()
 
         # detectar hielo
-        self.on_ice = False
+        self.on_danger = False
         if self.on_ground:
             foot_rect = pygame.Rect(self.rect.x, self.rect.bottom + 1, self.rect.width, 2)
 
             for tile in tiles:
-                if tile.type == "ice" and foot_rect.colliderect(tile.rect):
-                    self.on_ice = True
+                if (tile.type == "ice" or tile.type == "lava") and foot_rect.colliderect(tile.rect):
+                    self.on_danger = True
                     break
 
-        if self.on_ice:
+        if self.on_danger:
             self.take_damage(1)
 
 

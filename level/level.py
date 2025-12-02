@@ -2,6 +2,7 @@ import pygame
 from sprites.collectible import Collectible
 from sprites.enemy import Enemy
 from sprites.stalactite import Stalactite
+from sprites.laser import Laser
 from level.tile import Tile, TILE_SIZE
 from level.tileset_loader import load_tileset
 from level.world_loader import load_map
@@ -12,11 +13,13 @@ class Level:
         self.enemies = pygame.sprite.Group()
         self.stalactites = pygame.sprite.Group()
         self.collectibles = pygame.sprite.Group()
+        self.lasers = pygame.sprite.Group()
 
         self.player_spawn = (0, 0)
         self.enemy_spawns = []
         self.stalactite_spawns = []
         self.collectible_spawns = []
+        self.laser_spawns = []
 
         # Carga mapa y tiles según planeta
         self.planet = planet_name
@@ -28,11 +31,21 @@ class Level:
         self.spawn_enemies()
         self.spawn_stalactites()
         self.spawn_collectibles()
+        self.spawn_lasers()
+
 
         if self.planet == "glacius":
             self.ice_sound = pygame.mixer.Sound("assets/music/cold_wind.mp3")
             self.ice_sound.set_volume(0.4)
             self.ice_sound.play()
+        elif self.planet == "volcanus":
+            self.lava_sound = pygame.mixer.Sound("assets/music/bgs_volcanus.mp3")
+            self.lava_sound.set_volume(0.4)
+            self.lava_sound.play()
+        elif self.planet == "floria":
+            self.floria_sound = pygame.mixer.Sound("assets/music/bgs_floria.mp3")
+            self.floria_sound.set_volume(0.4)
+            self.floria_sound.play()
 
     # ------------------------------
     # Sección de carga de assets
@@ -43,7 +56,7 @@ class Level:
 
 
     def load_tileset(self):
-        ts_path = f"assets/images/tilesets/{self.planet}.png"
+        ts_path = f"assets/images/tilesets/A{self.planet}.png"
         self.tileset = load_tileset(ts_path)
 
 
@@ -53,36 +66,90 @@ class Level:
     def load_map(self):
         layout = load_map(self.planet)
 
-        tile_sheet = {
-            "ice_top": self.tileset[0],
-            "ice_center": self.tileset[1],
-            "ice_edge": self.tileset[2],
-            "rock_top": self.tileset[3],
-            "rock_center": self.tileset[4],
-            "rock_edge": self.tileset[5],
-        }
+        if self.planet == "glacius":
+            tile_sheet = {
+                "ice_top": self.tileset[0],
+                "ice_center": self.tileset[1],
+                "ice_edge": self.tileset[2],
+                "rock_top": self.tileset[3],
+                "rock_center": self.tileset[4],
+                "rock_edge": self.tileset[5],
+            }
+
+        elif self.planet == "volcanus":
+            tile_sheet = {
+                "lava_1": self.tileset[0],
+                "lava_2": self.tileset[1],
+                "rock_top": self.tileset[2],
+                "rock_center": self.tileset[3],
+                "rock_edge": self.tileset[4],
+                "rock_edge2": self.tileset[5],
+            }
+        
+        elif self.planet == "floria":
+            tile_sheet = {
+                "grass_top": self.tileset[0],
+                "grass_center": self.tileset[1],
+                "dirt_top": self.tileset[2],
+                "dirt_center": self.tileset[3],
+                "poison_1": self.tileset[4],
+                "poison_2": self.tileset[5],
+            }
 
         for row_idx, row in enumerate(layout):
             for col_idx, cell in enumerate(row):
                 x = col_idx * TILE_SIZE
                 y = row_idx * TILE_SIZE
 
-                # Tiles
-                if cell in ("R", "1", "#"):
-                    self.tiles.add(Tile(x, y, tile_sheet["rock_top"], "solid"))
+                # Tiles glacuis
+                if self.planet == "glacius":
+                    if cell in ("R", "1", "#"):
+                        self.tiles.add(Tile(x, y, tile_sheet["rock_top"], "solid"))
 
-                elif cell == "r":
-                    self.tiles.add(Tile(x, y, tile_sheet["rock_center"], "solid"))
+                    elif cell == "r":
+                        self.tiles.add(Tile(x, y, tile_sheet["rock_center"], "solid"))
 
-                elif cell == "i": 
-                    self.tiles.add(Tile(x, y, tile_sheet["ice_center"], "ice"))
+                    elif cell == "i": 
+                        self.tiles.add(Tile(x, y, tile_sheet["ice_center"], "ice"))
 
-                elif cell == "e":
-                    self.tiles.add(Tile(x, y, tile_sheet["ice_edge"], "solid"))
+                    elif cell == "e":
+                        self.tiles.add(Tile(x, y, tile_sheet["ice_edge"], "solid"))
+
+                elif self.planet == "volcanus":
+                    if cell == "#":
+                        self.tiles.add(Tile(x, y, tile_sheet["rock_top"], "solid"))
+
+                    elif cell == "r":
+                        self.tiles.add(Tile(x, y, tile_sheet["rock_center"], "lava"))
+
+                    elif cell == "V":
+                        self.tiles.add(Tile(x, y, tile_sheet["lava_1"], "solid"))
+
+                    elif cell == "v":
+                        self.tiles.add(Tile(x, y, tile_sheet["lava_2"], "solid"))
+
+                elif self.planet == "floria":
+                    if cell == "#":
+                        self.tiles.add(Tile(x, y, tile_sheet["grass_top"], "solid"))
+
+                    elif cell == "r":
+                        self.tiles.add(Tile(x, y, tile_sheet["grass_center"], "solid"))
+
+                    elif cell == "A":
+                        self.tiles.add(Tile(x, y, tile_sheet["dirt_top"], "solid"))
+
+                    elif cell == "a":
+                        self.tiles.add(Tile(x, y, tile_sheet["dirt_center"], "solid"))
+
+                    elif cell == "P":
+                        self.tiles.add(Tile(x, y, tile_sheet["poison_1"], "poison"))
+
+                    elif cell == "p":
+                        self.tiles.add(Tile(x, y, tile_sheet["poison_2"], "poison"))
 
                 # Spawns
                 #player
-                elif cell == "P":
+                if cell == "P":
                     self.player_spawn = (x, y)
                 #enemigo
                 elif cell == "E":
@@ -90,6 +157,9 @@ class Level:
                 #stalactita
                 elif cell == "S":
                     self.stalactite_spawns.append((x, y))
+                #láser
+                elif cell == "L":
+                    self.laser_spawns.append((x, y))
                 # collectibles
                 #fragmento
                 elif cell == "F":
@@ -97,6 +167,8 @@ class Level:
                 #heal
                 elif cell == "H":
                     self.collectible_spawns.append((x, y+ 50, "heal"))
+
+
 
     # ------------------------------
     # Instanciadores
@@ -106,23 +178,43 @@ class Level:
             self.enemies.add(Enemy(x, y, 120))
 
     def spawn_stalactites(self):
-        stal_img = pygame.image.load("assets/images/stalactite.png").convert_alpha()
-        stal_img = pygame.transform.scale(stal_img, (16, 32))
+        if self.planet == "glacius":
+            stal_img = pygame.image.load("assets/images/stalactite.png").convert_alpha()
+            stal_img = pygame.transform.scale(stal_img, (16, 32))
+        elif self.planet == "volcanus":
+            stal_img = pygame.image.load("assets/images/lavaS.png").convert_alpha()
+            stal_img = pygame.transform.scale(stal_img, (16, 32))
+        elif self.planet == "floria":
+            stal_img = pygame.image.load("assets/images/rockS.png").convert_alpha()
+            stal_img = pygame.transform.scale(stal_img, (16, 32))
         for x, y in self.stalactite_spawns:
             self.stalactites.add(Stalactite(x, y, stal_img))
 
     def spawn_collectibles(self):
-        fragment_img = pygame.image.load("assets/images/alfa.png").convert_alpha()
-        fragment_img = pygame.transform.scale(fragment_img, (60, 55))
+        if self.planet == "glacius":
+            fragment_img = pygame.image.load("assets/images/alfa.png").convert_alpha()
+            fragment_img = pygame.transform.scale(fragment_img, (60, 55))
+        elif self.planet == "volcanus":
+            fragment_img = pygame.image.load("assets/images/beta.png").convert_alpha()
+            fragment_img = pygame.transform.scale(fragment_img, (55, 55))
+        elif self.planet == "floria":
+            fragment_img = pygame.image.load("assets/images/gamma.png").convert_alpha()
+            fragment_img = pygame.transform.scale(fragment_img, (60, 55))
 
         heal_img = pygame.image.load("assets/images/item.png").convert_alpha()
-        heal_img = pygame.transform.scale(heal_img, (60, 60))
+        heal_img = pygame.transform.scale(heal_img, (80, 60))
 
         for x, y, type_ in self.collectible_spawns:
             if type_ == "fragment":
                 self.collectibles.add(Collectible(x, y, fragment_img, type="fragment"))
             elif type_ == "heal":
                 self.collectibles.add(Collectible(x, y, heal_img, type="heal"))
+            
+
+    def spawn_lasers(self):
+        for x, y in self.laser_spawns:
+            self.lasers.add(Laser(x, y, length=83, interval=0.5))
+
 
     # ------------------------------
     # Dibujo
@@ -132,3 +224,5 @@ class Level:
         self.collectibles.draw(surface)
         self.stalactites.draw(surface)
         self.enemies.draw(surface)
+        for laser in self.lasers:      # <<< láser manual
+            laser.draw(surface)
