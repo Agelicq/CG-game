@@ -44,11 +44,11 @@ class MenuState(State):
                             self.game.change_state(InputNameState(self.game))
 
                         elif text == "Puntajes":
-                            print("Mostrar puntajes (pendiente)")
+                            from states.scores import ScoreState
+                            self.game.change_state(ScoreState(self.game))
 
                         elif text == "Ayuda":
                             self.game.change_state(HelpState(self.game))
-
 
                         elif text == "Créditos":
                             self.game.change_state(CreditsState(self.game))
