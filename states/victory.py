@@ -19,7 +19,7 @@ class VictoryState(State):
             
         # Cargar fondo de victoria (opcional, si no hay usa verde)
         try:
-            self.bg = pygame.image.load("assets/images/victory.png").convert()
+            self.bg = pygame.image.load("assets/images/bgpuntajes.png").convert()
             self.bg = pygame.transform.scale(self.bg, (WIDTH, HEIGHT))
         except:
             self.bg = pygame.Surface((WIDTH, HEIGHT))

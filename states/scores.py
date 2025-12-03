@@ -9,7 +9,7 @@ class ScoreState(State):
 
         # 1. Cargar fondo (Podemos reusar el del menú o poner uno oscuro)
         try:
-            self.background = pygame.image.load("assets/images/menu.png").convert()
+            self.background = pygame.image.load("assets/images/bgpuntajes.png").convert()
             self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
             # Oscurecerlo un poco para que se lea el texto
             overlay = pygame.Surface((WIDTH, HEIGHT))
