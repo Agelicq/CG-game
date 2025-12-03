@@ -3,6 +3,7 @@ from settings import *
 from core.state import State
 from states.ayudaState import HelpState
 from states.creditosState import CreditsState
+from states.exit import ExitConfirmState
 import math  
 
 class MenuState(State):
@@ -36,7 +37,7 @@ class MenuState(State):
                     rect = pygame.Rect(WIDTH//2 - 100, y - 25, 200, 50)
                     if rect.collidepoint(mx, my):
                         if text == "Salir":
-                            pygame.quit(); sys.exit()
+                            self.game.change_state(ExitConfirmState(self.game))
                         
                         elif text == "Jugar":
                             from states.input_name import InputNameState
