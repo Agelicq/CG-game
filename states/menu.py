@@ -2,7 +2,8 @@ import pygame, sys
 from settings import *
 from core.state import State
 from states.ayudaState import HelpState
-import math  # Para el movimiento sinusoidal
+from states.creditosState import CreditsState
+import math  
 
 class MenuState(State):
     def __init__(self, game):
@@ -49,7 +50,8 @@ class MenuState(State):
 
 
                         elif text == "Créditos":
-                            print("Mostrar créditos (pendiente)")
+                            self.game.change_state(CreditsState(self.game))
+
 
     def draw(self):
         # Fondo estático (blit único en 0,0)
