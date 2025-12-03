@@ -1,22 +1,63 @@
-import pygame, sys
+#!/usr/bin/env python3
+"""Módulo de la Secuencia de Introducción.
+
+Este módulo contiene la clase IntroState que maneja
+la secuencia cinematática de introducción del juego,
+incluyendo la historia y transición al menú principal.
+"""
+
+# Importaciones de librerías estándar
+import sys
+
+# Importaciones de terceros
+import pygame
+
+# Importaciones locales
 from settings import *
 from core.state import State
 from states.menu import MenuState
 
+
 class IntroState(State):
+    """Estado de la secuencia de introducción del juego.
+    
+    Maneja la presentación cinematática inicial con
+    diapositivas de la historia, texto narrativo y
+    música de fondo. Permite avance manual o automático.
+    
+    Attributes:
+        start_time: Tiempo de inicio de la diapositiva actual.
+        duration_per_slide: Duración en ms de cada diapositiva.
+        story_texts: Lista de textos narrativos por diapositiva.
+        font: Fuente para renderizar texto.
+        images: Lista de imágenes cargadas de la historia.
+        current_index: Índice de la diapositiva actual.
+        transition_done: Flag para evitar transiciones múltiples.
+    """
     def __init__(self, game):
+        """Inicializa el estado de la introducción.
+        
+        Carga las imágenes de la historia, configura los textos
+        narrativos y reproduce la música de fondo.
+        
+        Args:
+            game: Referencia al gestor principal del juego.
+        """
         super().__init__(game)
         
+        # === CONFIGURACIÓN DE TIMING ===
         self.start_time = pygame.time.get_ticks()
-        self.duration_per_slide = 4000 
+        self.duration_per_slide = 4000  # 4 segundos por diapositiva
         
-        # 1. LISTA DE IMÁGENES
-        image_files = ["intro2.png","historia_1.png", "historia_2.png", "historia_3.png", "historia_4.png", "historia_5.png"]
+        # === ARCHIVOS DE IMÁGENES DE LA HISTORIA ===
+        image_files = [
+            "intro2.png", "historia_1.png", "historia_2.png", 
+            "historia_3.png", "historia_4.png", "historia_5.png"
+        ]
         
-        # 2. LISTA DE TEXTOS (Debe haber uno por cada imagen)
-        # Use None or empty string for slides that should not show text
+        # === TEXTOS NARRATIVOS (uno por diapositiva) ===
         self.story_texts = [
-            None,
+            None,  # Primera imagen sin texto
             "Viaje espacial Nebulosa del olvido...",
             "...LLUVIA DE ASTEROIDES...",
             "¡Impacto inminente!",
@@ -24,15 +65,15 @@ class IntroState(State):
             "ASTRO-BOT eres nuestra esperanza, recupera la FEP..."
         ]
         
-        # 3. FUENTE PARA EL TEXTO
-        # Usamos una fuente predeterminada, tamaño 30
+        # === CONFIGURACIÓN DE FUENTE ===
         self.font = pygame.font.Font("assets/fonts/VT323-Regular.ttf", 35)
-        #self.font = pygame.font.SysFont("Arial", 30)
-
+        
+        # === CONTROL DE ESTADO ===
         self.images = []
         self.current_index = 0
         self.transition_done = False
     
+        # === CARGA DE IMÁGENES ===
         print("Cargando historia...")
         for file_name in image_files:
             try:
@@ -41,76 +82,107 @@ class IntroState(State):
                 img = pygame.transform.scale(img, (WIDTH, HEIGHT))
                 self.images.append(img)
             except FileNotFoundError:
-                print(f" Error: No se encontró {file_name}")
+                print(f"Error: No se encontró {file_name}")
         
+        # Fallback: imagen negra si no se carga ninguna
         if not self.images:
             surf = pygame.Surface((WIDTH, HEIGHT))
             surf.fill((0, 0, 0))
             self.images.append(surf)
 
+        # === CONFIGURACIÓN DE MÚSICA ===
         try:
-            # Cargar música
             pygame.mixer.music.load("assets/music/Soliloquy.mp3")
-            
-            # Volumen bajo para que no asuste (0.4 es buen punto de partida)
-            pygame.mixer.music.set_volume(0.4) 
-            
-            # Play con loop infinito
-            pygame.mixer.music.play(loops=-1)
+            pygame.mixer.music.set_volume(0.4)  # Volumen moderado
+            pygame.mixer.music.play(loops=-1)   # Loop infinito
         except Exception as e:
             print(f"No se pudo cargar la música: {e}")
             
             
     def handle_events(self):
+        """Procesa los eventos de entrada del usuario.
+        
+        Permite salir del juego o avanzar manualmente
+        las diapositivas con cualquier clic o tecla.
+        """
         for event in pygame.event.get():
+            # === EVENTO DE SALIDA ===
             if event.type == pygame.QUIT:
-                pygame.quit(); sys.exit()
+                pygame.quit()
+                sys.exit()
+                
+            # === AVANCE MANUAL DE DIAPOSITIVAS ===
             if event.type in (pygame.MOUSEBUTTONDOWN, pygame.KEYDOWN):
                 self._advance_slide()
 
     def update(self):
+        """Actualiza el estado de la introducción.
+        
+        Verifica si ha transcurrido suficiente tiempo
+        para avanzar automáticamente a la siguiente diapositiva.
+        """
         current_time = pygame.time.get_ticks()
+        
+        # Avance automático por tiempo
         if current_time - self.start_time > self.duration_per_slide:
             self._advance_slide()
             
     def _advance_slide(self):
-        if self.transition_done: return
+        """Avanza a la siguiente diapositiva de la historia.
+        
+        Incrementa el índice de la diapositiva actual o
+        transite al menú principal si es la última.
+        """
+        if self.transition_done:
+            return
 
+        # Reiniciar temporizador para la nueva diapositiva
         self.start_time = pygame.time.get_ticks()
         
+        # Avanzar o finalizar
         if self.current_index < len(self.images) - 1:
             self.current_index += 1
         else:
             self._to_menu()
     
     def _to_menu(self):
+        """Transición al menú principal.
+        
+        Evita transiciones múltiples usando el flag
+        transition_done y cambia al estado del menú.
+        """
         if not self.transition_done:
             self.transition_done = True
             self.game.change_state(MenuState(self.game))
 
     def draw(self):
-        # 1. Dibujar imagen de fondo
+        """Renderiza la diapositiva actual de la introducción.
+        
+        Dibuja la imagen de fondo y el texto narrativo
+        correspondiente con fondo semitransparente para
+        mejorar la legibilidad.
+        """
+        # === IMAGEN DE FONDO ===
         if self.images:
             current_image = self.images[self.current_index]
             self.game.screen.blit(current_image, (0, 0))
 
-        # 2. Dibujar el texto de la historia (si existe y no es vacío)
+        # === TEXTO NARRATIVO ===
         if self.current_index < len(self.story_texts):
             text_string = self.story_texts[self.current_index]
 
-            # Sólo renderizar si text_string no es None ni cadena vacía
+            # Renderizar solo si hay texto válido
             if text_string and str(text_string).strip():
-                # Renderizar el texto (Color Blanco)
+                # Crear superficie de texto
                 text_surf = self.font.render(text_string, True, (255, 255, 255))
-                text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - 45)) # Posición: Abajo centrado
+                text_rect = text_surf.get_rect(center=(WIDTH // 2, HEIGHT - 45))
 
-                # --- FONDO NEGRO PARA EL TEXTO (Opcional pero recomendado) ---
+                # === FONDO SEMITRANSPARENTE PARA LEGIBILIDAD ===
                 bg_rect = text_rect.inflate(20, 10)
-                s = pygame.Surface((bg_rect.width, bg_rect.height))
-                s.set_alpha(150)
-                s.fill((0, 0, 0))
-                self.game.screen.blit(s, bg_rect.topleft)
-                # -------------------------------------------------------------
+                background = pygame.Surface((bg_rect.width, bg_rect.height))
+                background.set_alpha(150)  # Transparencia del 59%
+                background.fill((0, 0, 0))
+                self.game.screen.blit(background, bg_rect.topleft)
 
-                # Dibujar el texto encima de la caja negra
+                # === RENDERIZAR TEXTO ===
                 self.game.screen.blit(text_surf, text_rect)

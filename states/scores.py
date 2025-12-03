@@ -70,7 +70,7 @@ class ScoreState(State):
         scores_list.sort(key=lambda x: x['seconds'])
 
         # 4. DEVOLVER SOLO LOS 10 PRIMEROS
-        return scores_list[:10]
+        return scores_list[:5]
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -89,7 +89,7 @@ class ScoreState(State):
         self.game.screen.blit(self.background, (0, 0))
 
         # Título
-        title = self.font_title.render("MEJORES PILOTOS (TOP 10)", True, (255, 215, 0)) # Dorado
+        title = self.font_title.render("MEJORES PILOTOS (TOP 5)", True, (255, 215, 0)) # Dorado
         rect_title = title.get_rect(center=(WIDTH//2, 80))
         self.game.screen.blit(title, rect_title)
 

@@ -1,4 +1,12 @@
+"""Módulo de Nivel del Juego.
+
+Este módulo contiene la clase Level que maneja la carga y gestión
+de niveles en Astro Lost, incluyendo tiles, enemigos, coleccionables
+y otros elementos del nivel.
+"""
+
 import pygame
+
 from sprites.collectible import Collectible
 from sprites.enemy import Enemy
 from sprites.stalactite import Stalactite
@@ -8,8 +16,32 @@ from level.tile import Tile, TILE_SIZE
 from level.tileset_loader import load_tileset
 from level.world_loader import load_map
 
+
 class Level:
+    """Clase que representa un nivel del juego.
+    
+    Maneja la carga completa de un nivel incluyendo el mapa, tiles,
+    enemigos, coleccionables y otros elementos. Cada planeta tiene
+    su propio conjunto de assets y configuración.
+    
+    Atributos:
+        tiles (pygame.sprite.Group): Grupo de tiles del nivel.
+        enemies (pygame.sprite.Group): Grupo de enemigos del nivel.
+        stalactites (pygame.sprite.Group): Grupo de estalactitas.
+        collectibles (pygame.sprite.Group): Grupo de objetos coleccionables.
+        lasers (pygame.sprite.Group): Grupo de láseres del nivel.
+        toxic (pygame.sprite.Group): Grupo de elementos tóxicos.
+        player_spawn (tuple): Coordenadas de aparición del jugador.
+        planet (str): Nombre del planeta/nivel actual.
+    """
+    
     def __init__(self, planet_name):
+        """Inicializa un nuevo nivel.
+        
+        Args:
+            planet_name (str): Nombre del planeta (glacius, volcanus, floria).
+        """
+        # Inicializar grupos de sprites
         self.tiles = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
         self.stalactites = pygame.sprite.Group()
@@ -17,7 +49,7 @@ class Level:
         self.lasers = pygame.sprite.Group()
         self.toxic = pygame.sprite.Group()
 
-
+        # Inicializar listas de posiciones de spawn
         self.player_spawn = (0, 0)
         self.enemy_spawns = []
         self.stalactite_spawns = []
@@ -25,8 +57,7 @@ class Level:
         self.laser_spawns = []
         self.toxic_spawns = []
 
-
-        # Carga mapa y tiles según planeta
+        # Configurar planeta y cargar recursos
         self.planet = planet_name
         self.load_background()
         self.load_tileset()
@@ -54,9 +85,15 @@ class Level:
             self.floria_sound.play()
 
     # ------------------------------
-    # Sección de carga de assets
+    # Sección de carga de recursos
     # ------------------------------
+    
     def load_background(self):
+        """Carga la imagen de fondo del planeta.
+        
+        Intenta cargar la imagen de fondo específica del planeta.
+        Si no se encuentra, crea un fondo de color sólido como respaldo.
+        """
         bg_path = f"assets/images/bg_{self.planet}.png"
         self.background = pygame.image.load(bg_path).convert()
 

@@ -1,51 +1,102 @@
-import pygame, sys
+#!/usr/bin/env python3
+"""Módulo del Selector de Niveles.
+
+Este módulo contiene la clase LevelSelectState que maneja
+la selección de planetas/niveles, mostrando el progreso
+del jugador y permitiendo acceder a los diferentes mundos.
+"""
+
+# Importaciones de librerías estándar
+import sys
+
+# Importaciones de terceros
+import pygame
+
+# Importaciones locales
 from core.state import State
 from settings import *
-# Importamos el estado de Juego y el de Victoria
 from states.gamePlayState import GameplayState
-from states.victory import VictoryState  # <--- IMPORTANTE
+from states.victory import VictoryState
+
 
 class LevelSelectState(State):
+    """Estado del selector de niveles/planetas.
+    
+    Presenta una interfaz visual para seleccionar entre
+    los diferentes planetas disponibles, mostrando el
+    progreso completado y verificando condiciones de victoria.
+    
+    Attributes:
+        player_data: Datos del progreso del jugador.
+        background: Imagen de fondo del selector.
+        planet_glacius: Imagen del planeta Glacius.
+        planet_volcanus: Imagen del planeta Volcanus.
+        planet_floria: Imagen del planeta Floria.
+        sound_select: Sonido de selección de planeta.
+        sound_volume: Volumen del sonido de selección.
+        sound_max_ms: Duración máxima del sonido.
+        sound_fade_ms: Tiempo de fade del sonido.
+        positions: Posiciones de los planetas en pantalla.
+        base_size: Tamaño base de los planetas.
+        hover_size: Tamaño de los planetas al hacer hover.
+    """
     def __init__(self, game, player_data):
-        super().__init__(game)
-        self.player_data = player_data 
+        """Inicializa el selector de niveles.
         
-        # --- NOTA: ELIMINAMOS LA LÓGICA DE "IF TERMINÓ" DE AQUÍ PARA EVITAR ERRORES ---
-        # Primero cargamos todo, luego en 'update' revisamos si ganó.
-
-        # Fondo espacial
+        Carga las imágenes de los planetas, configura el fondo
+        y establece las propiedades de sonido y posicionamiento.
+        
+        Args:
+            game: Referencia al gestor principal del juego.
+            player_data (dict): Datos del progreso del jugador.
+        """
+        super().__init__(game)
+        self.player_data = player_data
+        
+        # === CONFIGURACIÓN DE FONDO ===
         try:
             self.background = pygame.image.load("assets/images/BGgame_select.png").convert()
             self.background = pygame.transform.scale(self.background, (WIDTH, HEIGHT))
-        except:
+        except FileNotFoundError:
+            # Fallback: fondo negro si no se encuentra la imagen
             self.background = pygame.Surface((WIDTH, HEIGHT))
-            self.background.fill((0,0,0))
+            self.background.fill((0, 0, 0))
 
-        # Imágenes de los planetas
+        # === CARGA DE IMÁGENES DE PLANETAS ===
         self.planet_glacius = pygame.image.load("assets/images/glacius.png").convert_alpha()
         self.planet_volcanus = pygame.image.load("assets/images/volcanus.png").convert_alpha()
         self.planet_floria = pygame.image.load("assets/images/floria.png").convert_alpha()
 
-        # Sonido
+        # === CONFIGURACIÓN DE AUDIO ===
         self.sound_select = pygame.mixer.Sound("assets/music/rocket.mp3")
-        self.sound_volume = 0.4 
-        self.sound_max_ms = 700
-        self.sound_fade_ms = 0
+        self.sound_volume = 0.4      # Volumen moderado
+        self.sound_max_ms = 700      # Duración máxima: 0.7s
+        self.sound_fade_ms = 0       # Sin fade
         self.sound_select.set_volume(self.sound_volume)
 
-        # Posiciones
+        # === POSICIONAMIENTO DE PLANETAS ===
         self.positions = {
-            "glacius": (200, 320),
-            "volcanus": (400, 320),
-            "floria": (600, 320)
+            "glacius": (200, 320),   # Planeta izquierdo
+            "volcanus": (400, 320),  # Planeta central
+            "floria": (600, 320)     # Planeta derecho
         }
-        self.base_size = 130
-        self.hover_size = 150
+        
+        # === TAMAÑOS DE PLANETAS ===
+        self.base_size = 130    # Tamaño normal
+        self.hover_size = 150   # Tamaño al hacer hover
 
     def update(self, dt=None):
-        # --- AQUÍ ES DONDE REVISAMOS SI GANÓ ---
-        total_planetas = 3 
+        """Verifica las condiciones de victoria del juego.
         
+        Comprueba si el jugador ha completado todos los planetas
+        para activar la secuencia de victoria y guardar puntaje.
+        
+        Args:
+            dt: Delta time (no utilizado en este método).
+        """
+        total_planetas = 3  # Número total de planetas en el juego
+        
+        # Verificar si se completaron todos los planetas
         if len(self.player_data["levels_done"]) >= total_planetas:
             self.save_score_and_finish()
 
@@ -93,40 +144,60 @@ class LevelSelectState(State):
                             self.game.change_state(GameplayState(self.game, name, self.player_data))
 
     def draw(self):
+        """Renderiza la interfaz del selector de niveles.
+        
+        Dibuja el fondo, los planetas con efectos visuales
+        de hover y transparencia para mostrar progreso,
+        y los nombres de los planetas con colores indicativos.
+        """
         screen = self.game.screen
+        
+        # === FONDO ===
         screen.blit(self.background, (0, 0))
 
+        # Obtener posición del mouse para efectos hover
         mx, my = pygame.mouse.get_pos()
 
-        # Dibujar planetas
+        # === RENDERIZADO DE PLANETAS ===
         for name, (x, y) in self.positions.items():
             img = getattr(self, f"planet_{name}")
             
-            # Opción visual: Si ya completó el nivel, hacerlo un poco transparente
+            # Efecto visual: transparencia para planetas completados
             if name in self.player_data["levels_done"]:
-                img.set_alpha(100)
+                img.set_alpha(100)  # Transparente (completado)
             else:
-                img.set_alpha(255)
+                img.set_alpha(255)  # Opaco (disponible)
 
-            distance_rect = pygame.Rect(x - self.base_size//2, y - self.base_size//2, self.base_size, self.base_size)
+            # Área de detección para hover
+            distance_rect = pygame.Rect(
+                x - self.base_size//2, 
+                y - self.base_size//2, 
+                self.base_size, 
+                self.base_size
+            )
 
+            # Efecto hover: agrandar planeta al pasar mouse
             if distance_rect.collidepoint((mx, my)):
                 img_scaled = pygame.transform.scale(img, (self.hover_size, self.hover_size))
             else:
                 img_scaled = pygame.transform.scale(img, (self.base_size, self.base_size))
 
+            # Centrar y dibujar planeta
             rect = img_scaled.get_rect(center=(x, y))
             screen.blit(img_scaled, rect)
 
-        # Títulos
+        # === CONFIGURACIÓN DE FUENTE ===
         try:
             font = pygame.font.Font("assets/fonts/VT323-Regular.ttf", 35)
-        except:
-            font = pygame.font.SysFont("verdana", 35)
+        except FileNotFoundError:
+            font = pygame.font.SysFont("verdana", 35)  # Fallback
 
-        # Dibujar nombres
+        # === NOMBRES DE PLANETAS ===
         nombres = [("glacius", 200), ("volcanus", 400), ("floria", 600)]
+        
         for txt, x_pos in nombres:
+            # Color indicativo: verde (completado) o blanco (disponible)
             color = (0, 255, 0) if txt in self.player_data["levels_done"] else (255, 255, 255)
+            
             text_surf = font.render(txt, True, color)
             screen.blit(text_surf, text_surf.get_rect(center=(x_pos, 410)))
